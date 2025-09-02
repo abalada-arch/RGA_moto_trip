@@ -257,9 +257,7 @@ export default function CoordinationModule() {
           </div>
         </div>
       </div>
-    </div>
-  );
-}
+
       {/* Carte du groupe */}
       <div className="bg-white rounded-xl shadow-sm border border-slate-200">
         <div className="p-4 border-b border-slate-200">
