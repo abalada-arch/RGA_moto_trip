@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Fuel, Coffee, AlertTriangle, Navigation, Users, ThumbsUp, Check } from 'lucide-react';
+import { Fuel, Coffee, AlertTriangle, Navigation, Users, ThumbsUp, Check, MapPin } from 'lucide-react';
 import { RiderStatus } from '../types';
 
 export default function CoordinationModule() {
@@ -203,6 +203,63 @@ export default function CoordinationModule() {
         </div>
       </div>
 
+      {/* Position Temps Réel */}
+      <div className="bg-white rounded-xl shadow-sm border border-slate-200">
+        <div className="p-4 border-b border-slate-200">
+          <div className="flex items-center justify-between">
+            <h3 className="text-lg font-semibold text-slate-900 flex items-center">
+              <MapPin className="w-5 h-5 mr-2 text-blue-600" />
+              Position Temps Réel
+            </h3>
+            <div className="flex items-center space-x-2">
+              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+              <span className="text-sm text-green-600 font-medium">En ligne</span>
+            </div>
+          </div>
+          <p className="text-sm text-slate-600 mt-1">
+            Localisation GPS de tous les participants en temps réel
+          </p>
+        </div>
+        <div className="p-4">
+          {/* Carte des positions */}
+          <div className="h-64 bg-slate-100 rounded-lg flex items-center justify-center border-2 border-dashed border-slate-300">
+            <div className="text-center">
+              <Navigation className="w-12 h-12 text-slate-400 mx-auto mb-2" />
+              <p className="text-slate-500 font-medium">Carte GPS Temps Réel</p>
+              <p className="text-sm text-slate-400">Fonctionnalité en cours de développement</p>
+            </div>
+          </div>
+          
+          {/* Liste des positions */}
+          <div className="mt-4 space-y-2">
+            <h4 className="text-sm font-semibold text-slate-700 mb-2">Positions Actuelles</h4>
+            {riderStatuses.map((rider) => (
+              <div key={rider.id} className="flex items-center justify-between p-2 bg-slate-50 rounded-lg">
+                <div className="flex items-center space-x-2">
+                  <div className={`w-2 h-2 rounded-full ${
+                    rider.status === 'riding' ? 'bg-green-500' :
+                    rider.status === 'fuel' ? 'bg-orange-500' :
+                    rider.status === 'pause' ? 'bg-blue-500' :
+                    'bg-red-500'
+                  }`} />
+                  <span className="text-sm font-medium text-slate-900">{rider.name}</span>
+                </div>
+                <div className="text-right">
+                  <p className="text-xs text-slate-600">
+                    {rider.lat.toFixed(4)}, {rider.lng.toFixed(4)}
+                  </p>
+                  <p className="text-xs text-slate-500">
+                    {Math.floor((Date.now() - rider.lastUpdate.getTime()) / 60000)}min
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
       {/* Carte du groupe */}
       <div className="bg-white rounded-xl shadow-sm border border-slate-200">
         <div className="p-4 border-b border-slate-200">
