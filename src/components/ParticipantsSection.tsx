@@ -6,7 +6,7 @@ interface Participant {
   name: string;
   email: string;
   phone?: string;
-  role: 'organizer' | 'member';
+  role: 'organizer' | 'member' | 'observer';
   joinedAt: Date;
 }
 
@@ -34,6 +34,14 @@ export default function ParticipantsSection() {
       email: 'pierre.durand@email.com',
       role: 'member',
       joinedAt: new Date('2024-01-25')
+    },
+    {
+      id: '4',
+      name: 'Julie Moreau',
+      email: 'julie.moreau@email.com',
+      phone: '+33 6 11 22 33 44',
+      role: 'observer',
+      joinedAt: new Date('2024-01-28')
     }
   ]);
 
@@ -96,11 +104,12 @@ export default function ParticipantsSection() {
 
   const organizers = participants.filter(p => p.role === 'organizer');
   const members = participants.filter(p => p.role === 'member');
+  const observers = participants.filter(p => p.role === 'observer');
 
   return (
     <div className="space-y-6">
       {/* Statistiques compactes */}
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-4 gap-3">
         <div className="bg-slate-700 rounded-xl p-3 text-center">
           <Users className="w-6 h-6 text-blue-400 mx-auto mb-1" />
           <p className="text-xl font-bold text-white">{participants.length}</p>
@@ -115,6 +124,11 @@ export default function ParticipantsSection() {
           <Users className="w-6 h-6 text-orange-400 mx-auto mb-1" />
           <p className="text-xl font-bold text-white">{members.length}</p>
           <p className="text-xs text-slate-400">Membres</p>
+        </div>
+        <div className="bg-slate-700 rounded-xl p-3 text-center">
+          <Users className="w-6 h-6 text-purple-400 mx-auto mb-1" />
+          <p className="text-xl font-bold text-white">{observers.length}</p>
+          <p className="text-xs text-slate-400">Observateurs</p>
         </div>
       </div>
 
@@ -185,11 +199,12 @@ export default function ParticipantsSection() {
               </label>
               <select
                 value={formData.role}
-                onChange={(e) => setFormData({ ...formData, role: e.target.value as 'organizer' | 'member' })}
+                onChange={(e) => setFormData({ ...formData, role: e.target.value as 'organizer' | 'member' | 'observer' })}
                 className="w-full px-4 py-3 bg-slate-600 border border-slate-500 rounded-xl text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               >
                 <option value="member">Membre</option>
                 <option value="organizer">Organisateur</option>
+                <option value="observer">Observateur</option>
               </select>
             </div>
             
@@ -230,9 +245,12 @@ export default function ParticipantsSection() {
                     <span className={`px-2 py-1 text-xs font-medium rounded-full ${
                       participant.role === 'organizer' 
                         ? 'bg-green-500/20 text-green-400' 
-                        : 'bg-blue-500/20 text-blue-400'
+                        : participant.role === 'member'
+                        ? 'bg-blue-500/20 text-blue-400'
+                        : 'bg-purple-500/20 text-purple-400'
                     }`}>
-                      {participant.role === 'organizer' ? 'Orga' : 'Membre'}
+                      {participant.role === 'organizer' ? 'Orga' : 
+                       participant.role === 'member' ? 'Membre' : 'Observateur'}
                     </span>
                   </div>
                   
