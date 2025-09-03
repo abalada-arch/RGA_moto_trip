@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { CheckSquare, FileText, Calculator, Users, Phone } from 'lucide-react';
+import { CheckSquare, FileText, Calculator, Users, Phone, Coffee } from 'lucide-react';
 import ChecklistsSection from './ChecklistsSection';
 import ExpensesSection from './ExpensesSection';
 import DocumentsSection from './DocumentsSection';
