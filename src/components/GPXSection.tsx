@@ -1,68 +1,124 @@
 import React, { useState } from 'react';
 import { Upload, Download, Share2, FileText, Users, Clock, Trash2, Info } from 'lucide-react';
-import { SharedGPX } from '../types';
+import { SharedGPX, GPXTrack } from '../types';
 
-export default function GPXSection() {
-  const [sharedGPX, setSharedGPX] = useState<SharedGPX[]>([
-    {
-      id: '1',
-      name: 'Route des Grandes Alpes - Jour 1',
-      uploadedBy: 'Marc',
-      uploadedAt: new Date(Date.now() - 2 * 60 * 60 * 1000),
-      fileSize: '2.3 MB',
-      downloadCount: 3,
-      stages: ['1'],
-      description: 'Thonon → Chamonix via Col des Gets'
-    },
-    {
-      id: '2',
-      name: 'Route des Grandes Alpes - Jour 2',
-      uploadedBy: 'Sophie',
-      uploadedAt: new Date(Date.now() - 1 * 60 * 60 * 1000),
-      fileSize: '3.1 MB',
-      downloadCount: 2,
-      stages: ['2'],
-      description: 'Chamonix → Bourg-St-Maurice via Col des Montets'
-    },
-    {
-      id: '3',
-      name: 'Route Complète RGA',
-      uploadedBy: 'Marc',
-      uploadedAt: new Date(Date.now() - 30 * 60 * 1000),
-      fileSize: '8.7 MB',
-      downloadCount: 3,
-      stages: ['1', '2', '3'],
-      description: 'Parcours complet des 3 jours avec tous les POIs'
-    }
-  ]);
+interface GPXSectionProps {
+  onGPXTrackUpload: (track: GPXTrack) => void;
+}
+
+export default function GPXSection({ onGPXTrackUpload }: GPXSectionProps) {
+  const [sharedGPX, setSharedGPX] = useState<SharedGPX[]>([]);
 
   const [isUploading, setIsUploading] = useState(false);
+
+  const parseGPXFile = (gpxContent: string, fileName: string): GPXTrack | null => {
+    try {
+      const parser = new DOMParser();
+      const xmlDoc = parser.parseFromString(gpxContent, 'text/xml');
+      
+      // Vérifier les erreurs de parsing
+      const parseError = xmlDoc.querySelector('parsererror');
+      if (parseError) {
+        throw new Error('Fichier GPX invalide');
+      }
+      
+      // Extraire les points de trace
+      const trackPoints = xmlDoc.querySelectorAll('trkpt');
+      const points: Array<{ lat: number; lng: number; elevation?: number }> = [];
+      
+      trackPoints.forEach(point => {
+        const lat = parseFloat(point.getAttribute('lat') || '0');
+        const lng = parseFloat(point.getAttribute('lon') || '0');
+        const eleElement = point.querySelector('ele');
+        const elevation = eleElement ? parseFloat(eleElement.textContent || '0') : undefined;
+        
+        if (lat && lng) {
+          points.push({ lat, lng, elevation });
+        }
+      });
+      
+      if (points.length === 0) {
+        throw new Error('Aucun point de trace trouvé dans le fichier GPX');
+      }
+      
+      // Calculer la distance approximative
+      let totalDistance = 0;
+      for (let i = 1; i < points.length; i++) {
+        const prev = points[i - 1];
+        const curr = points[i];
+        const distance = calculateDistance(prev.lat, prev.lng, curr.lat, curr.lng);
+        totalDistance += distance;
+      }
+      
+      return {
+        id: Date.now().toString(),
+        name: fileName.replace('.gpx', ''),
+        points,
+        distance: totalDistance,
+        uploadedAt: new Date()
+      };
+    } catch (error) {
+      console.error('Erreur parsing GPX:', error);
+      return null;
+    }
+  };
+  
+  const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number): number => {
+    const R = 6371; // Rayon de la Terre en km
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+              Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+              Math.sin(dLon/2) * Math.sin(dLon/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    return R * c;
+  };
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file && file.name.endsWith('.gpx')) {
       setIsUploading(true);
       
-      // Simulation d'upload
-      setTimeout(() => {
-        const newGPX: SharedGPX = {
-          id: Date.now().toString(),
-          name: file.name.replace('.gpx', ''),
-          uploadedBy: 'Vous',
-          uploadedAt: new Date(),
-          fileSize: `${(file.size / 1024 / 1024).toFixed(1)} MB`,
-          downloadCount: 0,
-          stages: ['1'],
-          description: 'Nouveau parcours partagé'
-        };
-        setSharedGPX([newGPX, ...sharedGPX]);
-        setIsUploading(false);
+      // Lire le fichier GPX
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const gpxContent = e.target?.result as string;
+        const gpxTrack = parseGPXFile(gpxContent, file.name);
         
-        // Vibration de confirmation
-        if (navigator.vibrate) {
-          navigator.vibrate([100, 50, 100]);
+        if (gpxTrack) {
+          // Ajouter à la liste des GPX partagés
+          const newGPX: SharedGPX = {
+            id: gpxTrack.id,
+            name: gpxTrack.name,
+            uploadedBy: 'Vous',
+            uploadedAt: gpxTrack.uploadedAt,
+            fileSize: `${(file.size / 1024 / 1024).toFixed(1)} MB`,
+            downloadCount: 0,
+            stages: ['1'],
+            description: `Parcours de ${gpxTrack.distance.toFixed(1)} km`
+          };
+          setSharedGPX([newGPX, ...sharedGPX]);
+          
+          // Ajouter à la carte
+          onGPXTrackUpload(gpxTrack);
+          
+          // Vibration de confirmation
+          if (navigator.vibrate) {
+            navigator.vibrate([100, 50, 100]);
+          }
+        } else {
+          alert('Erreur lors du traitement du fichier GPX');
         }
-      }, 2000);
+        
+        setIsUploading(false);
+      };
+      
+      reader.onerror = () => {
+        alert('Erreur lors de la lecture du fichier');
+        setIsUploading(false);
+      };
+      
+      reader.readAsText(file);
     }
   };
 

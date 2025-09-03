@@ -156,62 +156,70 @@ export default function WeatherSection({ stages }: WeatherSectionProps) {
           <Cloud className="w-5 h-5 mr-2 text-blue-400" />
           Météo du Parcours
         </h4>
-        <div className="space-y-3">
-          {weatherData.map((weather, index) => {
-            const stage = stages[index];
-            return (
-              <div key={weather.id} className="bg-slate-700 rounded-xl p-4">
-                <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center space-x-3">
-                    <span className="text-xs font-bold bg-blue-600 text-white px-2 py-1 rounded-full">
-                      J{stage?.day || index + 1}
-                    </span>
-                    <div>
-                      <h5 className="font-bold text-white">{weather.location}</h5>
-                      <p className="text-slate-400 text-sm">{getConditionLabel(weather.condition)}</p>
+        
+        {weatherData.length === 0 ? (
+          <div className="text-center py-8">
+            <Cloud className="w-12 h-12 text-slate-500 mx-auto mb-3" />
+            <p className="text-slate-400">Aucune donnée météo disponible</p>
+            <p className="text-sm text-slate-500 mt-1">Les prévisions s'afficheront automatiquement</p>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {weatherData.map((weather, index) => {
+              const stage = stages[index];
+              return (
+                <div key={weather.id} className="bg-slate-700 rounded-xl p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center space-x-3">
+                      <span className="text-xs font-bold bg-blue-600 text-white px-2 py-1 rounded-full">
+                        J{stage?.day || index + 1}
+                      </span>
+                      <div>
+                        <h5 className="font-bold text-white">{weather.location}</h5>
+                        <p className="text-slate-400 text-sm">{getConditionLabel(weather.condition)}</p>
+                      </div>
+                    </div>
+                    {getWeatherIcon(weather.condition)}
+                  </div>
+
+                  {/* Données météo en grille */}
+                  <div className="grid grid-cols-4 gap-3 text-center">
+                    <div className="bg-slate-600 rounded-lg p-2">
+                      <Thermometer className="w-4 h-4 text-red-400 mx-auto mb-1" />
+                      <p className="text-white font-bold text-lg">{weather.temperature}°</p>
+                      <p className="text-slate-400 text-xs">Temp</p>
+                    </div>
+                    <div className="bg-slate-600 rounded-lg p-2">
+                      <Wind className="w-4 h-4 text-blue-400 mx-auto mb-1" />
+                      <p className="text-white font-bold text-lg">{weather.windSpeed}</p>
+                      <p className="text-slate-400 text-xs">km/h {weather.windDirection}</p>
+                    </div>
+                    <div className="bg-slate-600 rounded-lg p-2">
+                      <Droplets className="w-4 h-4 text-cyan-400 mx-auto mb-1" />
+                      <p className="text-white font-bold text-lg">{weather.humidity}%</p>
+                      <p className="text-slate-400 text-xs">Humidité</p>
+                    </div>
+                    <div className="bg-slate-600 rounded-lg p-2">
+                      <Eye className="w-4 h-4 text-green-400 mx-auto mb-1" />
+                      <p className="text-white font-bold text-white">{weather.visibility}</p>
+                      <p className="text-slate-400 text-xs">km</p>
                     </div>
                   </div>
-                  {getWeatherIcon(weather.condition)}
+                  {/* Alertes spécifiques à cette étape */}
+                  {alerts.filter(alert => alert.affectedStages.includes(stage?.id || '')).length > 0 && (
+                    <div className="mt-3 p-2 bg-red-500/20 border border-red-500/50 rounded-lg">
+                      <p className="text-red-300 text-sm font-medium flex items-center">
+                        <AlertTriangle className="w-4 h-4 mr-2" />
+                        Alerte sur cette étape
+                      </p>
+                    </div>
+                  )}
                 </div>
-
-                {/* Données météo en grille */}
-                <div className="grid grid-cols-4 gap-3 text-center">
-                  <div className="bg-slate-600 rounded-lg p-2">
-                    <Thermometer className="w-4 h-4 text-red-400 mx-auto mb-1" />
-                    <p className="text-white font-bold text-lg">{weather.temperature}°</p>
-                    <p className="text-slate-400 text-xs">Temp</p>
-                  </div>
-                  <div className="bg-slate-600 rounded-lg p-2">
-                    <Wind className="w-4 h-4 text-blue-400 mx-auto mb-1" />
-                    <p className="text-white font-bold text-lg">{weather.windSpeed}</p>
-                    <p className="text-slate-400 text-xs">km/h {weather.windDirection}</p>
-                  </div>
-                  <div className="bg-slate-600 rounded-lg p-2">
-                    <Droplets className="w-4 h-4 text-cyan-400 mx-auto mb-1" />
-                    <p className="text-white font-bold text-lg">{weather.humidity}%</p>
-                    <p className="text-slate-400 text-xs">Humidité</p>
-                  </div>
-                  <div className="bg-slate-600 rounded-lg p-2">
-                    <Eye className="w-4 h-4 text-green-400 mx-auto mb-1" />
-                    <p className="text-white font-bold text-lg">{weather.visibility}</p>
-                    <p className="text-slate-400 text-xs">km</p>
-                  </div>
-                </div>
-
-                {/* Alertes spécifiques à cette étape */}
-                {alerts.filter(alert => alert.affectedStages.includes(stage?.id || '')).length > 0 && (
-                  <div className="mt-3 p-2 bg-red-500/20 border border-red-500/50 rounded-lg">
-                    <p className="text-red-300 text-sm font-medium flex items-center">
-                      <AlertTriangle className="w-4 h-4 mr-2" />
-                      Alerte sur cette étape
-                    </p>
-                  </div>
-                )}
-              </div>
-            );
-          })}
+              );
+            })}
+          </div>
+        )}
         </div>
-      </div>
     </div>
   );
 }

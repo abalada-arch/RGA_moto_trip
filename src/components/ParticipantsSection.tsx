@@ -228,73 +228,87 @@ export default function ParticipantsSection() {
       )}
 
       {/* Liste des participants - Optimisée mobile */}
-      <div className="space-y-3">
-        {participants.map((participant) => (
-          <div key={participant.id} className="bg-slate-700 rounded-xl p-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-3">
-                <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
-                  <span className="text-white font-bold text-lg">
-                    {participant.name.split(' ').map(n => n[0]).join('').toUpperCase()}
-                  </span>
-                </div>
-                
-                <div className="flex-1">
-                  <div className="flex items-center space-x-2">
-                    <h5 className="font-bold text-white">{participant.name}</h5>
-                    <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-                      participant.role === 'organizer' 
-                        ? 'bg-green-500/20 text-green-400' 
-                        : participant.role === 'member'
-                        ? 'bg-blue-500/20 text-blue-400'
-                        : 'bg-purple-500/20 text-purple-400'
-                    }`}>
-                      {participant.role === 'organizer' ? 'Orga' : 
-                       participant.role === 'member' ? 'Membre' : 'Observateur'}
+      {participants.length === 0 ? (
+        <div className="text-center py-8">
+          <Users className="w-12 h-12 text-slate-500 mx-auto mb-3" />
+          <p className="text-slate-400">Aucun contact ajouté</p>
+          <p className="text-sm text-slate-500 mt-1">Ajoutez les participants de votre voyage</p>
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {participants.map((participant) => (
+            <div key={participant.id} className="bg-slate-700 rounded-xl p-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+                    <span className="text-white font-bold text-lg">
+                      {participant.name.split(' ').map(n => n[0]).join('').toUpperCase()}
                     </span>
                   </div>
                   
-                  <div className="flex items-center space-x-3 mt-1 text-sm text-slate-300">
-                    <div className="flex items-center space-x-1">
-                      <Mail className="w-3 h-3" />
-                      <span className="truncate">{participant.email}</span>
+                  <div className="flex-1">
+                    <div className="flex items-center space-x-2">
+                      <h5 className="font-bold text-white">{participant.name}</h5>
+                      <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+                        participant.role === 'organizer' 
+                          ? 'bg-green-500/20 text-green-400' 
+                          : participant.role === 'member'
+                          ? 'bg-blue-500/20 text-blue-400'
+                          : 'bg-purple-500/20 text-purple-400'
+                      }`}>
+                        {participant.role === 'organizer' ? 'Orga' : 
+                         participant.role === 'member' ? 'Membre' : 'Observateur'}
+                      </span>
                     </div>
+                    
+                    <div className="flex items-center space-x-3 mt-1 text-sm text-slate-300">
+                      <div className="flex items-center space-x-1">
+                        <Mail className="w-3 h-3" />
+                        <span className="truncate">{participant.email}</span>
+                      </div>
+                    </div>
+                    
+                    {participant.phone && (
+                      <div className="flex items-center space-x-1 mt-1 text-sm text-slate-300">
+                        <Phone className="w-3 h-3" />
+                        <span>{participant.phone}</span>
+                      </div>
+                    )}
                   </div>
-                  
-                  {participant.phone && (
-                    <div className="flex items-center space-x-1 mt-1 text-sm text-slate-300">
-                      <Phone className="w-3 h-3" />
-                      <span>{participant.phone}</span>
-                    </div>
-                  )}
                 </div>
-              </div>
-              
-              <div className="flex flex-col space-y-2">
-                {participant.phone && (
-                  <button
-                    onClick={() => handleCall(participant.phone!)}
-                    className="p-2 bg-green-600 text-white rounded-lg hover:bg-green-700 active:bg-green-800 transition-colors"
-                  >
-                    <Phone className="w-4 h-4" />
-                  </button>
-                )}
-                <div className="flex space-x-1">
-                  <button
-                    onClick={() => handleEdit(participant)}
-                    className="p-2 text-slate-400 hover:text-blue-400 hover:bg-slate-600 rounded-lg transition-colors"
-                  >
-                    <Edit2 className="w-4 h-4" />
-                  </button>
-                  <button
-                    onClick={() => handleDelete(participant.id)}
-                    className="p-2 text-slate-400 hover:text-red-400 hover:bg-slate-600 rounded-lg transition-colors"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
+                
+                <div className="flex flex-col space-y-2">
+                  {participant.phone && (
+                    <button
+                      onClick={() => handleCall(participant.phone!)}
+                      className="p-2 bg-green-600 text-white rounded-lg hover:bg-green-700 active:bg-green-800 transition-colors"
+                    >
+                      <Phone className="w-4 h-4" />
+                    </button>
+                  )}
+                  <div className="flex space-x-1">
+                    <button
+                      onClick={() => handleEdit(participant)}
+                      className="p-2 text-slate-400 hover:text-blue-400 hover:bg-slate-600 rounded-lg transition-colors"
+                    >
+                      <Edit2 className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={() => handleDelete(participant.id)}
+                      className="p-2 text-slate-400 hover:text-red-400 hover:bg-slate-600 rounded-lg transition-colors"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
           </div>
         ))}
       </div>

@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, useMapEvents } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, Polyline, useMapEvents } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { POI, GPXTrack } from '../types';
@@ -67,6 +67,17 @@ export default function MapComponent({ pois, gpxTracks, onAddPOI, selectedStage 
         />
         
         <MapClickHandler onAddPOI={onAddPOI} />
+        
+        {/* Affichage des traces GPX */}
+        {gpxTracks.map((track) => (
+          <Polyline
+            key={track.id}
+            positions={track.points.map(point => [point.lat, point.lng])}
+            color="#3B82F6"
+            weight={4}
+            opacity={0.8}
+          />
+        ))}
         
         {/* Affichage des POIs */}
         {pois.map((poi) => (

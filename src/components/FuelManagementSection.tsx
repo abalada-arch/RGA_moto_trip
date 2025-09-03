@@ -3,56 +3,28 @@ import { Fuel, Plus, MapPin, Euro, TrendingUp, AlertTriangle, Clock, Navigation 
 import { FuelData, FuelConsumption } from '../types';
 
 export default function FuelManagementSection() {
-  const [fuelStations, setFuelStations] = useState<FuelData[]>([
-    {
-      id: '1',
-      stationName: 'Total Access',
-      location: 'Chamonix Centre',
-      lat: 45.9237,
-      lng: 6.8694,
-      price: 1.65,
-      services: ['24h/24', 'Lavage', 'Shop'],
-      lastUpdate: new Date(),
-      addedBy: 'Marc'
-    },
-    {
-      id: '2',
-      stationName: 'Shell',
-      location: 'Bourg-Saint-Maurice',
-      lat: 45.6196,
-      lng: 6.7710,
-      price: 1.68,
-      services: ['Café', 'Toilettes'],
-      lastUpdate: new Date(Date.now() - 2 * 60 * 60 * 1000),
-      addedBy: 'Sophie'
-    }
-  ]);
+  const [fuelStations, setFuelStations] = useState<FuelData[]>([]);
 
-  const [fuelHistory, setFuelHistory] = useState<FuelConsumption[]>([
-    {
-      id: '1',
-      date: new Date(Date.now() - 24 * 60 * 60 * 1000),
-      odometer: 45230,
-      liters: 18.5,
-      cost: 30.53,
-      stationName: 'Total Access Chamonix',
-      consumption: 5.2
-    }
-  ]);
+  const [fuelHistory, setFuelHistory] = useState<FuelConsumption[]>([]);
 
-  const [currentOdometer, setCurrentOdometer] = useState(45248);
+  const [currentOdometer, setCurrentOdometer] = useState(0);
   const [tankCapacity] = useState(18); // Litres
-  const [lastFuelUp, setLastFuelUp] = useState(fuelHistory[0]);
+  const [lastFuelUp, setLastFuelUp] = useState<FuelConsumption | null>(null);
   const [showAddStation, setShowAddStation] = useState(false);
   const [showAddFuelUp, setShowAddFuelUp] = useState(false);
 
   // Calculs automatiques
-  const kmSinceLastFuel = currentOdometer - (lastFuelUp?.odometer || 0);
-  const estimatedFuelLeft = tankCapacity - (kmSinceLastFuel * (lastFuelUp?.consumption || 5.5) / 100);
-  const estimatedRange = estimatedFuelLeft * (100 / (lastFuelUp?.consumption || 5.5));
+  const kmSinceLastFuel = lastFuelUp ? currentOdometer - lastFuelUp.odometer : 0;
+  const defaultConsumption = 5.5;
+  const estimatedFuelLeft = lastFuelUp 
+    ? tankCapacity - (kmSinceLastFuel * lastFuelUp.consumption / 100)
+    : tankCapacity;
+  const estimatedRange = lastFuelUp 
+    ? estimatedFuelLeft * (100 / lastFuelUp.consumption)
+    : estimatedFuelLeft * (100 / defaultConsumption);
   const averageConsumption = fuelHistory.length > 0 
     ? fuelHistory.reduce((sum, fuel) => sum + fuel.consumption, 0) / fuelHistory.length 
-    : 5.5;
+    : defaultConsumption;
 
   const addFuelStation = (stationData: Omit<FuelData, 'id' | 'lastUpdate' | 'addedBy'>) => {
     const newStation: FuelData = {
@@ -66,9 +38,9 @@ export default function FuelManagementSection() {
   };
 
   const addFuelUp = (fuelData: Omit<FuelConsumption, 'id' | 'consumption'>) => {
-    const consumption = fuelHistory.length > 0 
+    const consumption = lastFuelUp 
       ? (fuelData.liters / (fuelData.odometer - lastFuelUp.odometer)) * 100
-      : 5.5;
+      : defaultConsumption;
     
     const newFuelUp: FuelConsumption = {
       ...fuelData,
@@ -125,8 +97,8 @@ export default function FuelManagementSection() {
           </div>
         </div>
 
-        {/* Alerte carburant */}
-        {estimatedFuelLeft < 3 && (
+        {/* Alerte carburant - seulement si on a des données */}
+        {lastFuelUp && estimatedFuelLeft < 3 && (
           <div className="bg-red-600/20 border border-red-500/50 rounded-xl p-4">
             <div className="flex items-center space-x-3">
               <AlertTriangle className="w-6 h-6 text-red-400" />
@@ -152,7 +124,7 @@ export default function FuelManagementSection() {
           </div>
           <div className="bg-slate-700 rounded-lg p-3 text-center">
             <Euro className="w-5 h-5 text-orange-400 mx-auto mb-1" />
-            <p className="text-lg font-bold text-white">{(lastFuelUp?.cost || 0).toFixed(0)}</p>
+            <p className="text-lg font-bold text-white">{lastFuelUp ? lastFuelUp.cost.toFixed(0) : '0'}</p>
             <p className="text-xs text-slate-400">€ dernier plein</p>
           </div>
         </div>
@@ -174,30 +146,38 @@ export default function FuelManagementSection() {
           </button>
         </div>
 
-        <div className="space-y-3">
-          {fuelStations.map((station) => (
-            <div key={station.id} className="bg-slate-700 rounded-xl p-4">
-              <div className="flex items-center justify-between mb-2">
-                <div>
-                  <h5 className="font-bold text-white">{station.stationName}</h5>
-                  <p className="text-slate-400 text-sm">{station.location}</p>
+        {fuelStations.length === 0 ? (
+          <div className="text-center py-8">
+            <Fuel className="w-12 h-12 text-slate-500 mx-auto mb-3" />
+            <p className="text-slate-400">Aucune station enregistrée</p>
+            <p className="text-sm text-slate-500 mt-1">Ajoutez des stations sur votre parcours</p>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {fuelStations.map((station) => (
+              <div key={station.id} className="bg-slate-700 rounded-xl p-4">
+                <div className="flex items-center justify-between mb-2">
+                  <div>
+                    <h5 className="font-bold text-white">{station.stationName}</h5>
+                    <p className="text-slate-400 text-sm">{station.location}</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-xl font-bold text-orange-400">{station.price.toFixed(2)}€</p>
+                    <p className="text-xs text-slate-400">par litre</p>
+                  </div>
                 </div>
-                <div className="text-right">
-                  <p className="text-xl font-bold text-orange-400">{station.price.toFixed(2)}€</p>
-                  <p className="text-xs text-slate-400">par litre</p>
+                
+                <div className="flex flex-wrap gap-2">
+                  {station.services.map((service, index) => (
+                    <span key={index} className="px-2 py-1 bg-blue-600/20 text-blue-300 text-xs rounded-full">
+                      {service}
+                    </span>
+                  ))}
                 </div>
               </div>
-              
-              <div className="flex flex-wrap gap-2">
-                {station.services.map((service, index) => (
-                  <span key={index} className="px-2 py-1 bg-blue-600/20 text-blue-300 text-xs rounded-full">
-                    {service}
-                  </span>
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Historique consommation */}
@@ -213,24 +193,32 @@ export default function FuelManagementSection() {
           </button>
         </div>
 
-        <div className="space-y-3">
-          {fuelHistory.map((fuel) => (
-            <div key={fuel.id} className="bg-slate-700 rounded-xl p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="font-bold text-white">{fuel.stationName}</p>
-                  <p className="text-slate-400 text-sm">
-                    {fuel.date.toLocaleDateString('fr-FR')} • {fuel.liters}L
-                  </p>
-                </div>
-                <div className="text-right">
-                  <p className="text-lg font-bold text-white">{fuel.cost.toFixed(2)}€</p>
-                  <p className="text-sm text-slate-400">{fuel.consumption.toFixed(1)} L/100km</p>
+        {fuelHistory.length === 0 ? (
+          <div className="text-center py-8">
+            <TrendingUp className="w-12 h-12 text-slate-500 mx-auto mb-3" />
+            <p className="text-slate-400">Aucun plein enregistré</p>
+            <p className="text-sm text-slate-500 mt-1">Ajoutez vos pleins pour suivre la consommation</p>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {fuelHistory.map((fuel) => (
+              <div key={fuel.id} className="bg-slate-700 rounded-xl p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="font-bold text-white">{fuel.stationName}</p>
+                    <p className="text-slate-400 text-sm">
+                      {fuel.date.toLocaleDateString('fr-FR')} • {fuel.liters}L
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-lg font-bold text-white">{fuel.cost.toFixed(2)}€</p>
+                    <p className="text-sm text-slate-400">{fuel.consumption.toFixed(1)} L/100km</p>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

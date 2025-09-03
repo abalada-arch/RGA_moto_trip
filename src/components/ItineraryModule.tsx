@@ -191,7 +191,7 @@ export default function ItineraryModule() {
       case 'roads':
         return <RoadInfoSection />;
       case 'gpx':
-        return <GPXSection />;
+        return <GPXSection onGPXTrackUpload={(track) => setGpxTracks([...gpxTracks, track])} />;
       case 'recorder':
         return <TripRecorderSection />;
       case 'fuel':

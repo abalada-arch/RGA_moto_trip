@@ -101,32 +101,41 @@ export default function ExpensesSection() {
       </div>
 
       {/* Liste des dépenses */}
-      <div className="bg-white rounded-lg border border-slate-200">
-        <div className="flex items-center justify-between p-4 border-b border-slate-200">
-          <h4 className="text-lg font-semibold text-slate-900">Dépenses</h4>
-          <button className="inline-flex items-center px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+      <div className="bg-slate-800 rounded-2xl p-6">
+        <div className="flex items-center justify-between mb-4">
+          <h4 className="text-lg font-bold text-white">Dépenses</h4>
+          <button className="inline-flex items-center px-3 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors">
             <Plus className="w-4 h-4 mr-2" />
             Ajouter
           </button>
         </div>
         
-        <div className="divide-y divide-slate-200">
-          {expenses.map((expense) => (
-            <div key={expense.id} className="p-4 hover:bg-slate-50 transition-colors">
-              <div className="flex items-center justify-between">
-                <div className="flex-1">
-                  <p className="font-medium text-slate-900">{expense.description}</p>
-                  <p className="text-sm text-slate-600">
-                    Payé par {expense.paidBy} • {expense.participants.length} participants
-                  </p>
-                </div>
-                <div className="text-right">
-                  <p className="text-lg font-bold text-slate-900">{expense.amount.toFixed(2)} €</p>
-                  <p className="text-sm text-slate-600 capitalize">{expense.category}</p>
+        {expenses.length === 0 ? (
+          <div className="text-center py-8">
+            <Euro className="w-12 h-12 text-slate-500 mx-auto mb-3" />
+            <p className="text-slate-400">Aucune dépense enregistrée</p>
+            <p className="text-sm text-slate-500 mt-1">Ajoutez vos frais de voyage</p>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {expenses.map((expense) => (
+              <div key={expense.id} className="bg-slate-700 rounded-xl p-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex-1">
+                    <p className="font-medium text-white">{expense.description}</p>
+                    <p className="text-sm text-slate-400">
+                      Payé par {expense.paidBy} • {expense.participants.length} participants
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-lg font-bold text-white">{expense.amount.toFixed(2)} €</p>
+                    <p className="text-sm text-slate-400 capitalize">{expense.category}</p>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
+        )}
         </div>
       </div>
     </div>

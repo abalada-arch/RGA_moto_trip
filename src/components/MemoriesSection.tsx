@@ -3,41 +3,7 @@ import { Camera, Plus, MapPin, Heart, Share2, Download, Tag, Clock, User } from 
 import { TripMemory } from '../types';
 
 export default function MemoriesSection() {
-  const [memories, setMemories] = useState<TripMemory[]>([
-    {
-      id: '1',
-      type: 'photo',
-      title: 'Vue Mont-Blanc',
-      content: 'https://images.pexels.com/photos/1366919/pexels-photo-1366919.jpeg?auto=compress&cs=tinysrgb&w=800',
-      lat: 45.9237,
-      lng: 6.8694,
-      timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000),
-      addedBy: 'Marc',
-      tags: ['montagne', 'panorama', 'chamonix']
-    },
-    {
-      id: '2',
-      type: 'note',
-      title: 'Restaurant excellent',
-      content: 'Superbe accueil au restaurant La Bergerie. Parking moto sécurisé, spécialités savoyardes délicieuses. À recommander !',
-      lat: 45.9200,
-      lng: 6.8650,
-      timestamp: new Date(Date.now() - 4 * 60 * 60 * 1000),
-      addedBy: 'Sophie',
-      tags: ['restaurant', 'recommandation']
-    },
-    {
-      id: '3',
-      type: 'achievement',
-      title: 'Premier col à 2000m',
-      content: 'Col des Montets franchi ! Premier col au-dessus de 2000m pour Pierre.',
-      lat: 46.0069,
-      lng: 6.9242,
-      timestamp: new Date(Date.now() - 6 * 60 * 60 * 1000),
-      addedBy: 'Pierre',
-      tags: ['col', 'altitude', 'première']
-    }
-  ]);
+  const [memories, setMemories] = useState<TripMemory[]>([]);
 
   const [showAddForm, setShowAddForm] = useState(false);
   const [newMemory, setNewMemory] = useState({
@@ -239,63 +205,68 @@ export default function MemoriesSection() {
       )}
 
       {/* Timeline des souvenirs */}
-      <div className="bg-slate-800 rounded-2xl p-6">
-        <h4 className="text-lg font-bold text-white mb-4">Timeline</h4>
-        
-        <div className="space-y-4">
-          {memories.map((memory) => (
-            <div key={memory.id} className={`p-4 rounded-xl border-2 ${getMemoryColor(memory.type)}`}>
-              <div className="flex items-start justify-between mb-3">
-                <div className="flex items-center space-x-3">
-                  {getMemoryIcon(memory.type)}
-                  <div>
-                    <h5 className="font-bold text-white text-lg">{memory.title}</h5>
-                    <div className="flex items-center space-x-2 text-sm text-slate-400">
-                      <User className="w-3 h-3" />
-                      <span>{memory.addedBy}</span>
-                      <Clock className="w-3 h-3" />
-                      <span>{memory.timestamp.toLocaleString('fr-FR')}</span>
-                    </div>
-                  </div>
-                </div>
-                <button
-                  onClick={() => shareMemory(memory)}
-                  className="p-2 text-slate-400 hover:text-blue-400 transition-colors"
-                >
-                  <Share2 className="w-5 h-5" />
-                </button>
-              </div>
-
-              {memory.type === 'photo' && memory.content.startsWith('http') ? (
-                <img 
-                  src={memory.content} 
-                  alt={memory.title}
-                  className="w-full h-48 object-cover rounded-lg mb-3"
-                />
-              ) : (
-                <p className="text-slate-200 mb-3">{memory.content}</p>
-              )}
-
-              {memory.lat && memory.lng && (
-                <div className="flex items-center space-x-2 text-sm text-slate-400 mb-2">
-                  <MapPin className="w-4 h-4" />
-                  <span>Position : {memory.lat.toFixed(4)}, {memory.lng.toFixed(4)}</span>
-                </div>
-              )}
-
-              {memory.tags.length > 0 && (
-                <div className="flex flex-wrap gap-2">
-                  {memory.tags.map((tag, index) => (
-                    <span key={index} className="px-2 py-1 bg-slate-600 text-slate-300 text-xs rounded-full">
-                      #{tag}
-                    </span>
-                  ))}
-                </div>
-              )}
+        <div className="bg-slate-800 rounded-2xl p-6">
+          <h4 className="text-lg font-bold text-white mb-4">Timeline</h4>
+          
+          {memories.length === 0 ? (
+            <div className="text-center py-8">
+              <Camera className="w-12 h-12 text-slate-500 mx-auto mb-3" />
+              <p className="text-slate-400">Aucun souvenir enregistré</p>
+              <p className="text-sm text-slate-500 mt-1">Ajoutez vos photos et notes de voyage</p>
             </div>
-          ))}
+          ) : (
+            <div className="space-y-4">
+              {memories.map((memory) => (
+                <div key={memory.id} className={`p-4 rounded-xl border-2 ${getMemoryColor(memory.type)}`}>
+                  <div className="flex items-start justify-between mb-3">
+                    <div className="flex items-center space-x-3">
+                      {getMemoryIcon(memory.type)}
+                      <div>
+                        <h5 className="font-bold text-white text-lg">{memory.title}</h5>
+                        <div className="flex items-center space-x-2 text-sm text-slate-400">
+                          <User className="w-3 h-3" />
+                          <span>{memory.addedBy}</span>
+                          <Clock className="w-3 h-3" />
+                          <span>{memory.timestamp.toLocaleString('fr-FR')}</span>
+                        </div>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => shareMemory(memory)}
+                      className="p-2 text-slate-400 hover:text-blue-400 transition-colors"
+                    >
+                      <Share2 className="w-5 h-5" />
+                  {memory.type === 'photo' && memory.content.startsWith('http') ? (
+                    <img 
+                      src={memory.content} 
+                      alt={memory.title}
+                      className="w-full h-48 object-cover rounded-lg mb-3"
+                    />
+                  ) : (
+                    <p className="text-slate-200 mb-3">{memory.content}</p>
+                  )}
+                    </button>
+                  {memory.lat && memory.lng && (
+                    <div className="flex items-center space-x-2 text-sm text-slate-400 mb-2">
+                      <MapPin className="w-4 h-4" />
+                      <span>Position : {memory.lat.toFixed(4)}, {memory.lng.toFixed(4)}</span>
+                    </div>
+                  )}
+                  </div>
+                  {memory.tags.length > 0 && (
+                    <div className="flex flex-wrap gap-2">
+                      {memory.tags.map((tag, index) => (
+                        <span key={index} className="px-2 py-1 bg-slate-600 text-slate-300 text-xs rounded-full">
+                          #{tag}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
         </div>
-      </div>
     </div>
   );
 }
