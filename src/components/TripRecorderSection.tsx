@@ -508,8 +508,8 @@ export default function TripRecorderSection() {
           <div className="p-4 bg-slate-700 rounded-xl">
             <p className="font-medium text-white mb-2">Seuils de Détection</p>
             <div className="text-sm text-slate-300 space-y-1">
-              <p>• Démarrage : mouvement > 5 km/h</p>
-              <p>• Arrêt : immobilité > 5 minutes</p>
+              <p>• Démarrage : mouvement &gt; 5 km/h</p>
+              <p>• Arrêt : immobilité &gt; 5 minutes</p>
               <p>• Précision GPS : haute</p>
             </div>
           </div>
