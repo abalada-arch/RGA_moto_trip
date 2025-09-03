@@ -27,4 +27,25 @@
   * {
     text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
   }
+  
+  /* Optimisations pour le mode plein écran */
+  .fullscreen-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 9999;
+  }
+  
+  /* Améliore la visibilité des boutons en plein écran */
+  .fullscreen-buttons {
+    backdrop-filter: blur(10px);
+    background: rgba(15, 23, 42, 0.95);
+  }
+  
+  /* Animations pour les transitions plein écran */
+  .map-transition {
+    transition: all 0.3s ease-in-out;
+  }
 }
