@@ -46,217 +46,269 @@ export default function SettingsModule() {
       content: [
         {
           title: 'À propos de RGA Trip',
-          description: 'Application dédiée aux voyages moto en groupe sur la Route des Grandes Alpes. Conçue pour être utilisée pendant la conduite avec des gants.',
+          description: 'Application dédiée aux voyages moto en groupe sur la Route des Grandes Alpes. Interface adaptative selon votre situation : préparation ou conduite.',
           features: [
-            'Interface tactile optimisée pour les gants',
-            'Mode sombre pour réduire l\'éblouissement',
-            'Feedback vibratoire pour les confirmations',
-            'Boutons d\'urgence toujours accessibles'
+            '2 modes distincts : Préparation (complet) et Conduite (simplifié)',
+            'Basculement automatique selon le mouvement détecté',
+            'Interface tactile optimisée pour les gants épais',
+            'Mode sombre anti-éblouissement en plein soleil',
+            'Feedback vibratoire pour toutes les confirmations',
+            'Boutons d\'urgence accessibles en permanence'
+          ]
+        },
+        {
+          title: 'Mode Préparation ☕',
+          description: 'Interface complète pour planifier et organiser votre voyage avant le départ ou pendant les pauses.',
+          features: [
+            '4 sections complètes : Itinéraire, Groupe, Organisation, Paramètres',
+            'Planification détaillée : météo, routes, hébergements',
+            'Gestion groupe : contacts, communications, frais',
+            'Organisation : listes, documents, souvenirs',
+            'Configuration : paramètres, aide, synchronisation'
+          ]
+        },
+        {
+          title: 'Mode Conduite 🏍️',
+          description: 'Interface simplifiée et sécurisée pour l\'utilisation pendant la conduite.',
+          features: [
+            '3 onglets essentiels : Navigation, Groupe, Urgence',
+            'Boutons géants (60px+) compatibles gants épais',
+            'Actions rapides : ESSENCE, PAUSE, URGENCE',
+            'Données temps réel : vitesse, distance, durée',
+            'Intercom simplifié : maintenir pour parler',
+            'Carte plein écran pour navigation GPS'
           ]
         }
       ]
     },
     {
       id: 'route',
-      title: 'Section Route',
+      title: 'Module Itinéraire',
       icon: Route,
       content: [
         {
-          title: 'Carte Interactive',
-          description: 'Navigation GPS avec mode plein écran pour le guidage.',
+          title: 'Navigation GPS',
+          description: 'Carte interactive avec basculement automatique en mode conduite.',
           features: [
-            'Appuyez sur "Plein Écran" pour la navigation',
-            'Cliquez sur la carte pour ajouter des POIs',
-            'Boutons rapides accessibles en navigation',
-            'Zoom automatique sur votre position'
+            'Mode Préparation : planification détaillée du parcours',
+            'Mode Conduite : carte plein écran avec boutons rapides',
+            'Ajout POIs : clic sur carte (préparation uniquement)',
+            'Géolocalisation temps réel avec précision haute',
+            'Zoom automatique sur position actuelle',
+            'Enregistrement automatique du trajet'
           ]
         },
         {
-          title: 'Météo Géolocalisée',
-          description: 'Prévisions météo pour chaque étape du parcours.',
+          title: 'Gestion Carburant Avancée',
+          description: 'Suivi intelligent de votre consommation et autonomie.',
           features: [
-            'Alertes météo en temps réel',
-            'Conditions par col et altitude',
-            'Prévisions vent et visibilité',
-            'Alertes de sécurité automatiques'
+            'Calculateur d\'autonomie : km restants en temps réel',
+            'Barre visuelle du niveau de carburant',
+            'Alertes automatiques : réserve, stations proches',
+            'Historique consommation avec calcul L/100km',
+            'Base de données stations : prix, services, horaires',
+            'Statistiques voyage : consommation moyenne, coûts'
           ]
         },
         {
-          title: 'État des Routes',
-          description: 'Informations sur l\'ouverture des cols et routes.',
+          title: 'Météo & Routes',
+          description: 'Conditions météo et état des routes en temps réel.',
           features: [
+            'Prévisions météo géolocalisées par étape',
+            'Alertes météo : pluie, vent, neige, brouillard',
             'Statut en temps réel des cols',
-            'Conditions de circulation',
-            'Alertes fermetures/restrictions',
-            'Informations d\'altitude'
+            'Conditions circulation : ouvert/fermé/restrictions',
+            'Alertes sécurité : fermetures, dangers',
+            'Informations altitude et conditions spécifiques'
           ]
         },
         {
-          title: 'Partage GPX',
-          description: 'Partage de fichiers GPX avec tout le groupe.',
+          title: 'Trafic & Péages',
+          description: 'Informations trafic et calcul des coûts de péages.',
           features: [
-            'Upload de vos parcours GPX',
-            'Téléchargement des parcours du groupe',
-            'Synchronisation automatique',
-            'Export vers GPS/navigation'
+            'Alertes trafic temps réel : bouchons, accidents, travaux',
+            'Calcul péages automatique : moto vs voiture',
+            'Routes alternatives suggérées',
+            'Délais estimés et coûts détaillés',
+            'Hôpitaux et services d\'urgence sur parcours'
           ]
         },
         {
-          title: 'Enregistrement Auto',
-          description: 'Enregistrement automatique de vos trajets.',
+          title: 'Partage GPX & Enregistrement',
+          description: 'Gestion des fichiers GPX et enregistrement automatique.',
           features: [
+            'Upload/téléchargement GPX avec le groupe',
+            'POIs inclus : restaurants, hôtels, stations, pauses',
             'Démarrage automatique en mouvement',
             'Arrêt automatique à l\'arrêt prolongé',
-            'Statistiques en temps réel',
-            'Export GPX automatique'
+            'Statistiques temps réel : vitesse, distance, inclinaison',
+            'Export GPX automatique avec tous les POIs'
           ]
         }
       ]
     },
     {
       id: 'coordination',
-      title: 'Section Groupe',
+      title: 'Module Groupe',
       icon: Users,
       content: [
         {
+          title: 'Communication Avancée',
+          description: 'Système d\'intercom virtuel et communication groupe.',
+          features: [
+            'Intercom virtuel : maintenir pour parler au groupe',
+            'Messages vocaux avec durée et lecture',
+            'Messages rapides prédéfinis pour situations courantes',
+            'Codes radio standardisés (CODE 1-4)',
+            'Accusés réception "VU" pour chaque message',
+            'Statut connexion temps réel avec indicateur visuel'
+          ]
+        },
+        {
           title: 'Actions Rapides',
-          description: 'Communication instantanée avec le groupe.',
+          description: 'Communication instantanée des statuts au groupe.',
           features: [
-            'ESSENCE : Signaler un arrêt carburant',
-            'PAUSE : Demander un arrêt',
-            'URGENCE : Alerte immédiate au groupe',
-            'Feedback vibratoire sur chaque action'
+            'ESSENCE : signaler arrêt carburant avec station',
+            'PAUSE : demander arrêt avec durée estimée',
+            'URGENCE : alerte immédiate avec géolocalisation',
+            'Feedback vibratoire pour chaque action',
+            'Retour automatique en "En route" après 30s'
           ]
         },
         {
-          title: 'Statut Groupe',
-          description: 'Suivi en temps réel de tous les participants.',
+          title: 'Suivi Groupe Temps Réel',
+          description: 'Positions et statuts de tous les participants.',
           features: [
-            'Position GPS de chaque membre',
-            'Statut actuel (en route, pause, etc.)',
-            'Bouton "VU" pour confirmer réception',
-            'Historique des dernières actions'
-          ]
-        },
-        {
-          title: 'Position GPS',
-          description: 'Localisation temps réel du groupe.',
-          features: [
-            'Carte avec positions de tous',
-            'Mise à jour automatique',
-            'Calcul des distances entre membres',
-            'Mode économie batterie disponible'
+            'Carte GPS avec positions de tous les membres',
+            'Statuts visuels : en route, pause, essence, urgence',
+            'Validation "VU" pour confirmer réception des statuts',
+            'Calcul distances entre membres du groupe',
+            'Historique des dernières actions et positions',
+            'Mode économie batterie pour longues étapes'
           ]
         }
       ]
     },
     {
       id: 'organization',
-      title: 'Section Infos',
+      title: 'Module Organisation',
       icon: FileText,
       content: [
         {
           title: 'Contacts',
-          description: 'Gestion des participants et contacts d\'urgence.',
+          description: 'Gestion complète des participants et observateurs.',
           features: [
-            'Appel direct depuis l\'app',
-            'Rôles organisateur/membre',
-            'Informations de contact complètes',
-            'Ajout/modification facile'
+            '3 types : Organisateur, Membre, Observateur',
+            'Observateurs : suivent sans participer physiquement',
+            'Appel direct depuis l\'app avec numérotation',
+            'Informations complètes : email, téléphone, rôle',
+            'Statistiques : nombre par type de participant'
           ]
         },
         {
-          title: 'Listes de Vérification',
-          description: 'Checklists partagées et personnelles.',
+          title: 'Frais Partagés Avancés',
+          description: 'Gestion intelligente des dépenses du voyage.',
           features: [
-            'Liste groupe (hébergements, météo, etc.)',
-            'Liste personnelle (équipement, moto)',
-            'Progression visuelle',
-            'Synchronisation avec le groupe'
+            'Calcul automatique des parts par participant',
+            'Équilibrage des comptes en temps réel',
+            'Catégories : essence, repas, hébergement, péages',
+            'Qui doit combien à qui : calcul intelligent',
+            'Export résumés pour remboursements',
+            'Historique complet des dépenses'
           ]
         },
         {
-          title: 'Documents',
-          description: 'Coffre-fort sécurisé pour vos papiers.',
+          title: 'Souvenirs & Social',
+          description: 'Carnet de voyage numérique géolocalisé.',
           features: [
-            'Stockage sécurisé hors ligne',
-            'Permis, assurance, carte grise',
-            'Accès rapide en cas de contrôle',
-            'Sauvegarde automatique'
+            '3 types : Photos, Notes, Exploits/Achievements',
+            'Géolocalisation automatique de chaque souvenir',
+            'Tags pour organiser et retrouver facilement',
+            'Timeline chronologique du voyage',
+            'Partage social natif (Instagram, Facebook)',
+            'Export carnet de voyage complet'
           ]
         },
         {
-          title: 'Frais Partagés',
-          description: 'Gestion des dépenses du voyage.',
+          title: 'Documents & Listes',
+          description: 'Coffre-fort numérique et checklists intelligentes.',
           features: [
-            'Calcul automatique des parts',
-            'Équilibrage des comptes',
-            'Catégories (essence, repas, etc.)',
-            'Export des résumés'
+            'Coffre-fort sécurisé : permis, assurance, carte grise',
+            'Accès hors ligne pour contrôles routiers',
+            'Listes groupe : hébergements, météo, organisation',
+            'Listes personnelles : équipement, moto, bagages',
+            'Progression visuelle et synchronisation groupe'
           ]
         }
       ]
     },
     {
       id: 'safety',
-      title: 'Sécurité & Urgences',
+      title: 'Sécurité & Modes',
       icon: AlertTriangle,
       content: [
         {
-          title: 'Bouton d\'Urgence',
-          description: 'Alerte immédiate en cas de problème.',
+          title: 'Modes d\'Utilisation',
+          description: 'Basculement intelligent entre préparation et conduite.',
           features: [
-            'Accessible depuis toutes les sections',
-            'Envoie position GPS au groupe',
-            'Vibration d\'alerte forte',
-            'Appel automatique services d\'urgence'
+            'Détection automatique : bascule en conduite si mouvement',
+            'Mode Préparation : interface complète (4 onglets)',
+            'Mode Conduite : interface simplifiée (3 onglets)',
+            'Boutons géants en conduite : compatibles gants',
+            'Basculement manuel : bouton DÉMARRER/ARRÊT',
+            'Sauvegarde contexte lors du changement de mode'
           ]
         },
         {
-          title: 'Localisation d\'Urgence',
-          description: 'Partage de position en cas de besoin.',
+          title: 'Système d\'Urgence',
+          description: 'Alertes et secours en cas de problème.',
           features: [
-            'Coordonnées GPS précises',
-            'Plus3Words pour les secours',
-            'Partage par SMS automatique',
-            'Historique des positions'
+            'Bouton URGENCE : accessible dans tous les modes',
+            'Alerte automatique au groupe avec position GPS',
+            'Appels directs : 15 (SAMU), 17 (Police), 18 (Pompiers)',
+            'Hôpitaux sur parcours avec coordonnées',
+            'Partage position par SMS automatique',
+            'Vibration d\'alerte forte pour attirer l\'attention'
           ]
         }
       ]
     },
     {
       id: 'tips',
-      title: 'Conseils d\'Utilisation',
+      title: 'Conseils & Optimisations',
       icon: HelpCircle,
       content: [
         {
-          title: 'Utilisation en Moto',
-          description: 'Conseils pour une utilisation optimale.',
+          title: 'Utilisation Optimale en Moto',
+          description: 'Conseils pour une expérience sécurisée et efficace.',
           features: [
-            'Fixez le téléphone en position portrait',
-            'Utilisez des gants compatibles tactile',
-            'Activez le mode "Ne pas déranger"',
-            'Gardez une batterie externe'
+            'Fixation téléphone : position portrait, support étanche',
+            'Gants tactiles : compatibilité testée avec boutons 60px+',
+            'Mode "Ne pas déranger" : éviter distractions',
+            'Batterie externe : autonomie longues étapes',
+            'Basculement modes : automatique ou manuel selon préférence'
           ]
         },
         {
-          title: 'Économie de Batterie',
-          description: 'Optimiser l\'autonomie pendant le voyage.',
+          title: 'Gestion Intelligente',
+          description: 'Optimisations automatiques pour l\'autonomie et la sécurité.',
           features: [
-            'Mode économie GPS activable',
-            'Réduction de la luminosité auto',
-            'Mise en veille intelligente',
-            'Alertes niveau batterie'
+            'Enregistrement automatique : démarre/arrête selon mouvement',
+            'GPS adaptatif : précision haute en conduite, économie en pause',
+            'Luminosité automatique : adaptation conditions lumineuses',
+            'Mise en veille intelligente : préserve batterie',
+            'Alertes proactives : carburant, batterie, météo'
           ]
         },
         {
-          title: 'Connectivité',
-          description: 'Gestion de la connexion réseau.',
+          title: 'Connectivité & Synchronisation',
+          description: 'Gestion réseau et partage de données groupe.',
           features: [
-            'Fonctionne hors ligne',
-            'Synchronisation automatique',
-            'Mode données limitées',
-            'Partage par Bluetooth/WiFi'
+            'Fonctionnement hors ligne : cartes, documents, contacts',
+            'Synchronisation automatique : dès que réseau disponible',
+            'Mode données limitées : optimisation consommation',
+            'Partage multi-canal : WiFi, Bluetooth, données mobiles',
+            'Sauvegarde cloud : récupération en cas de problème'
           ]
         }
       ]
