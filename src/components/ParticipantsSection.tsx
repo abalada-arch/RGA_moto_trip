@@ -51,7 +51,7 @@ export default function ParticipantsSection() {
     name: '',
     email: '',
     phone: '',
-    role: 'member' as 'organizer' | 'member'
+    role: 'member' as 'organizer' | 'member' | 'observer'
   });
 
   const resetForm = () => {
@@ -306,12 +306,6 @@ export default function ParticipantsSection() {
           ))}
         </div>
       )}
-    </div>
-  );
-}
-          </div>
-        ))}
-      </div>
     </div>
   );
 }
