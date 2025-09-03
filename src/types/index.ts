@@ -9,6 +9,38 @@ export interface TripStage {
   description?: string;
 }
 
+export interface TripRecording {
+  id: string;
+  startTime: Date;
+  endTime?: Date;
+  isRecording: boolean;
+  distance: number;
+  duration: number;
+  averageSpeed: number;
+  maxSpeed: number;
+  maxLean: number;
+  coordinates: Array<{
+    lat: number;
+    lng: number;
+    timestamp: Date;
+    speed?: number;
+    heading?: number;
+    altitude?: number;
+  }>;
+  stageName?: string;
+}
+
+export interface TripStats {
+  totalDistance: number;
+  totalDuration: number;
+  averageSpeed: number;
+  maxSpeed: number;
+  maxLean: number;
+  fuelStops: number;
+  pauseCount: number;
+  recordings: TripRecording[];
+}
+
 export interface POI {
   id: string;
   name: string;
@@ -103,4 +135,3 @@ export interface SharedGPX {
   downloadCount: number;
   stages: string[];
   description?: string;
-}
