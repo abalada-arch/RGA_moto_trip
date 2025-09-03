@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Map, Route, Users, Settings, Car, Coffee, AlertTriangle, Navigation, Maximize2 } from 'lucide-react';
+import { Map, Route, Users, Settings, Car, Coffee, AlertTriangle, Navigation, Maximize2, User } from 'lucide-react';
+import { useAuth } from '../contexts/AuthContext';
+import UserProfile from './UserProfile';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -12,6 +14,8 @@ interface LayoutProps {
 export default function Layout({ children, activeTab, onTabChange, isDrivingMode, onModeChange }: LayoutProps) {
   const [isMoving, setIsMoving] = useState(false);
   const [speed, setSpeed] = useState(0);
+  const [showProfile, setShowProfile] = useState(false);
+  const { user } = useAuth();
 
   // Détection automatique du mouvement
   useEffect(() => {
@@ -128,13 +132,23 @@ export default function Layout({ children, activeTab, onTabChange, isDrivingMode
               </div>
             </div>
             
-            <button
-              onClick={() => onModeChange(true)}
-              className="flex items-center space-x-2 px-4 py-2 bg-green-600 text-white rounded-xl hover:bg-green-700 transition-colors"
-            >
-              <Car className="w-5 h-5" />
-              <span className="font-medium">DÉMARRER</span>
-            </button>
+            <div className="flex items-center space-x-3">
+              <button
+                onClick={() => setShowProfile(!showProfile)}
+                className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center hover:from-blue-600 hover:to-purple-700 transition-all"
+              >
+                <span className="text-white font-bold text-sm">
+                  {(user?.user_metadata?.name || user?.email || 'U').charAt(0).toUpperCase()}
+                </span>
+              </button>
+              <button
+                onClick={() => onModeChange(true)}
+                className="flex items-center space-x-2 px-4 py-2 bg-green-600 text-white rounded-xl hover:bg-green-700 transition-colors"
+              >
+                <Car className="w-5 h-5" />
+                <span className="font-medium">DÉMARRER</span>
+              </button>
+            </div>
           </div>
         </div>
       </header>
@@ -166,6 +180,11 @@ export default function Layout({ children, activeTab, onTabChange, isDrivingMode
 
       {/* Contenu préparation */}
       <main className="pb-20 px-4 py-4">
+        {showProfile && (
+          <div className="mb-6">
+            <UserProfile />
+          </div>
+        )}
         {children}
       </main>
     </div>
