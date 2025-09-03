@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
-import { Fuel, Coffee, AlertTriangle, Navigation, Users, ThumbsUp, Check, MapPin, Phone } from 'lucide-react';
+import { Fuel, Coffee, AlertTriangle, Navigation, Users, ThumbsUp, Check, MapPin, Phone, Radio, MessageSquare } from 'lucide-react';
 import { RiderStatus } from '../types';
+import CommunicationSection from './CommunicationSection';
 
 export default function CoordinationModule() {
   const [myStatus, setMyStatus] = useState<'riding' | 'fuel' | 'pause' | 'emergency'>('riding');
+  const [activeSection, setActiveSection] = useState<'status' | 'communication'>('status');
   
   // Données d'exemple des participants
   const riders: RiderStatus[] = [
@@ -93,6 +95,38 @@ export default function CoordinationModule() {
 
   return (
     <div className="space-y-6">
+      {/* Navigation communication */}
+      <div className="bg-slate-800 rounded-2xl overflow-hidden">
+        <div className="grid grid-cols-2">
+          <button
+            onClick={() => setActiveSection('status')}
+            className={`flex items-center justify-center py-4 px-4 transition-all duration-200 ${
+              activeSection === 'status'
+                ? 'bg-blue-600 text-white'
+                : 'text-slate-400 hover:text-white hover:bg-slate-700'
+            }`}
+          >
+            <Users className="w-6 h-6 mr-2" />
+            <span className="font-medium">Statuts</span>
+          </button>
+          <button
+            onClick={() => setActiveSection('communication')}
+            className={`flex items-center justify-center py-4 px-4 transition-all duration-200 ${
+              activeSection === 'communication'
+                ? 'bg-blue-600 text-white'
+                : 'text-slate-400 hover:text-white hover:bg-slate-700'
+            }`}
+          >
+            <Radio className="w-6 h-6 mr-2" />
+            <span className="font-medium">Intercom</span>
+          </button>
+        </div>
+      </div>
+
+      {activeSection === 'communication' ? (
+        <CommunicationSection />
+      ) : (
+        <>
       {/* Statuts Rapides - Gros boutons tactiles */}
       <div className="bg-slate-800 rounded-2xl p-6">
         <h3 className="text-xl font-bold text-white mb-6 text-center">Actions Rapides</h3>
@@ -264,6 +298,8 @@ export default function CoordinationModule() {
           <AlertTriangle className="w-8 h-8 text-white" />
         </button>
       </div>
+        </>
+      )}
     </div>
   );
 }

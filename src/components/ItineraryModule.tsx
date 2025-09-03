@@ -1,15 +1,18 @@
 import React, { useState } from 'react';
-import { Upload, MapPin, Clock, Navigation, Route, Fuel, Coffee, Maximize2, Minimize2, AlertTriangle, ThumbsUp, Cloud, Mountain, Share2, BarChart3 } from 'lucide-react';
+import { Upload, MapPin, Clock, Navigation, Route, Fuel, Coffee, Maximize2, Minimize2, AlertTriangle, ThumbsUp, Cloud, Mountain, Share2, BarChart3, Euro, Camera, Radio } from 'lucide-react';
 import MapComponent from './MapComponent';
 import WeatherSection from './WeatherSection';
 import RoadInfoSection from './RoadInfoSection';
 import GPXSection from './GPXSection';
 import TripRecorderSection from './TripRecorderSection';
+import FuelManagementSection from './FuelManagementSection';
+import MemoriesSection from './MemoriesSection';
+import TollTrafficSection from './TollTrafficSection';
 import { TripStage, POI, GPXTrack } from '../types';
 
 export default function ItineraryModule() {
   const [selectedStage, setSelectedStage] = useState<string | null>(null);
-  const [activeSection, setActiveSection] = useState<'map' | 'weather' | 'roads' | 'gpx' | 'recorder'>('map');
+  const [activeSection, setActiveSection] = useState<'map' | 'weather' | 'roads' | 'gpx' | 'recorder' | 'fuel' | 'memories' | 'traffic'>('map');
   const [pois, setPois] = useState<POI[]>([]);
   const [gpxTracks, setGpxTracks] = useState<GPXTrack[]>([]);
   const [isMapFullscreen, setIsMapFullscreen] = useState(false);
@@ -83,6 +86,9 @@ export default function ItineraryModule() {
     { id: 'weather', label: 'Météo', icon: Cloud },
     { id: 'roads', label: 'Routes', icon: Mountain },
     { id: 'gpx', label: 'GPX', icon: Share2 },
+    { id: 'fuel', label: 'Essence', icon: Fuel },
+    { id: 'memories', label: 'Souvenirs', icon: Camera },
+    { id: 'traffic', label: 'Trafic', icon: Euro },
     { id: 'recorder', label: 'Stats', icon: BarChart3 },
   ] as const;
 
@@ -188,6 +194,12 @@ export default function ItineraryModule() {
         return <GPXSection />;
       case 'recorder':
         return <TripRecorderSection />;
+      case 'fuel':
+        return <FuelManagementSection />;
+      case 'memories':
+        return <MemoriesSection />;
+      case 'traffic':
+        return <TollTrafficSection />;
       default:
         return null;
     }
@@ -292,7 +304,7 @@ export default function ItineraryModule() {
     <div className="space-y-6">
       {/* Navigation des sections */}
       <div className="bg-slate-800 rounded-2xl overflow-hidden">
-        <div className="grid grid-cols-5">
+        <div className="grid grid-cols-4 md:grid-cols-8 gap-0">
           {sections.map((section) => {
             const Icon = section.icon;
             const isActive = activeSection === section.id;

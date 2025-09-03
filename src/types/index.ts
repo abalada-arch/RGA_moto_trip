@@ -135,4 +135,93 @@ export interface SharedGPX {
   downloadCount: number;
   stages: string[];
   description?: string;
+  pois?: POI[];
+  restaurants?: RestaurantPOI[];
+  hotels?: HotelPOI[];
+}
+
+export interface FuelData {
+  id: string;
+  stationName: string;
+  location: string;
+  lat: number;
+  lng: number;
+  price: number;
+  services: string[];
+  lastUpdate: Date;
+  addedBy: string;
+}
+
+export interface FuelConsumption {
+  id: string;
+  date: Date;
+  odometer: number;
+  liters: number;
+  cost: number;
+  stationName: string;
+  consumption: number; // L/100km
+}
+
+export interface VoiceMessage {
+  id: string;
+  senderId: string;
+  senderName: string;
+  message: string;
+  timestamp: Date;
+  isVoice: boolean;
+  duration?: number;
+  acknowledged: string[];
+}
+
+export interface TripMemory {
+  id: string;
+  type: 'photo' | 'note' | 'achievement';
+  title: string;
+  content: string;
+  lat?: number;
+  lng?: number;
+  timestamp: Date;
+  addedBy: string;
+  tags: string[];
+}
+
+export interface TollCalculation {
+  id: string;
+  route: string;
+  vehicleType: 'moto' | 'car';
+  sections: Array<{
+    name: string;
+    distance: number;
+    cost: number;
+  }>;
+  totalCost: number;
+  lastUpdate: Date;
+}
+
+export interface TrafficInfo {
+  id: string;
+  route: string;
+  severity: 'low' | 'medium' | 'high';
+  type: 'traffic' | 'accident' | 'roadwork' | 'weather';
+  description: string;
+  delay: number; // minutes
+  alternativeRoute?: string;
+  lastUpdate: Date;
+}
+
+export interface RestaurantPOI extends POI {
+  type: 'restaurant';
+  cuisine: string;
+  priceRange: '$' | '$$' | '$$$';
+  openingHours: string;
+  hasParking: boolean;
+  rating: number;
+}
+
+export interface HotelPOI extends POI {
+  type: 'hotel';
+  hasGarage: boolean;
+  priceRange: '$' | '$$' | '$$$';
+  services: string[];
+  rating: number;
 }
