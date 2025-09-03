@@ -102,7 +102,6 @@ export default function TripRecorderSection() {
     }
   };
 
-  const startGPSTracking = () => {
   const handleOrientation = (event: DeviceOrientationEvent) => {
     orientationRef.current = event;
   };
@@ -123,6 +122,62 @@ export default function TripRecorderSection() {
     return Math.abs(orientation.gamma);
   };
 
+  const startGPSTracking = () => {
+    // Démarrer le suivi GPS
+    watchIdRef.current = navigator.geolocation.watchPosition(
+      (position) => {
+        checkForMovement(position);
+        
+        if (currentRecording && lastPositionRef.current) {
+          const distance = calculateDistance(
+            lastPositionRef.current.coords.latitude,
+            lastPositionRef.current.coords.longitude,
+            position.coords.latitude,
+            position.coords.longitude
+          );
+          
+          const speed = position.coords.speed ? position.coords.speed * 3.6 : 0;
+          const leanAngle = orientationRef.current ? calculateLeanAngle(orientationRef.current) : 0;
+          
+          setCurrentRecording(prev => {
+            if (!prev) return null;
+            
+            const newDistance = prev.distance + distance;
+            const newDuration = (Date.now() - prev.startTime.getTime()) / 60000; // minutes
+            const newAverageSpeed = newDuration > 0 ? (newDistance / newDuration) * 60 : 0;
+            
+            return {
+              ...prev,
+              distance: newDistance,
+              duration: newDuration,
+              averageSpeed: newAverageSpeed,
+              maxSpeed: Math.max(prev.maxSpeed, speed),
+              maxLean: Math.max(prev.maxLean, leanAngle),
+              coordinates: [...prev.coordinates, {
+                lat: position.coords.latitude,
+                lng: position.coords.longitude,
+                altitude: position.coords.altitude,
+                timestamp: new Date(),
+                speed: speed,
+                leanAngle: leanAngle
+              }]
+            };
+          });
+        }
+        
+        lastPositionRef.current = position;
+      },
+      (error) => {
+        console.error('Erreur GPS:', error);
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 1000
+      }
+    );
+  };
+
   const startRecording = () => {
     const recording: TripRecording = {
       id: Date.now().toString(),
@@ -139,10 +194,6 @@ export default function TripRecorderSection() {
 
     setCurrentRecording(recording);
     setIsRecording(true);
-
-    // Démarrer le suivi GPS
-    watchIdRef.current = navigator.geolocation.watchPosition(
-      (position) => {
     startGPSTracking();
 
     // Vibration de démarrage
@@ -161,6 +212,7 @@ export default function TripRecorderSection() {
       clearTimeout(autoStopTimeoutRef.current);
       autoStopTimeoutRef.current = null;
     }
+
     if (currentRecording) {
       const finalRecording = {
         ...currentRecording,
