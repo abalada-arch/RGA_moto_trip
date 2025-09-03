@@ -3,8 +3,10 @@ import { Play, Square, Download, BarChart3, Navigation, Gauge, TrendingUp, Clock
 import { TripRecording, TripStats } from '../types';
 
 export default function TripRecorderSection() {
-  const [isRecording, setIsRecording] = useState(false);
+  const [isRecording, setIsRecording] = useState(true); // Auto-démarré
   const [currentRecording, setCurrentRecording] = useState<TripRecording | null>(null);
+  const [autoRecording, setAutoRecording] = useState(true);
+  const [lastMovementTime, setLastMovementTime] = useState<number>(Date.now());
   const [tripStats, setTripStats] = useState<TripStats>({
     totalDistance: 0,
     totalDuration: 0,
@@ -19,13 +21,20 @@ export default function TripRecorderSection() {
   const watchIdRef = useRef<number | null>(null);
   const orientationRef = useRef<DeviceOrientationEvent | null>(null);
   const lastPositionRef = useRef<GeolocationPosition | null>(null);
+  const autoStopTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Demander les permissions au montage
   useEffect(() => {
     requestPermissions();
+    if (autoRecording) {
+      startAutoRecording();
+    }
     return () => {
       if (watchIdRef.current) {
         navigator.geolocation.clearWatch(watchIdRef.current);
+      }
+      if (autoStopTimeoutRef.current) {
+        clearTimeout(autoStopTimeoutRef.current);
       }
     };
   }, []);
@@ -49,6 +58,51 @@ export default function TripRecorderSection() {
     }
   };
 
+  const startAutoRecording = () => {
+    if (!autoRecording || isRecording) return;
+    
+    const recording: TripRecording = {
+      id: Date.now().toString(),
+      startTime: new Date(),
+      isRecording: true,
+      distance: 0,
+      duration: 0,
+      averageSpeed: 0,
+      maxSpeed: 0,
+      maxLean: 0,
+      coordinates: [],
+      stageName: `Trajet Auto ${new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}`
+    };
+
+    setCurrentRecording(recording);
+    setIsRecording(true);
+    startGPSTracking();
+  };
+
+  const checkForMovement = (position: GeolocationPosition) => {
+    const speed = position.coords.speed ? position.coords.speed * 3.6 : 0; // km/h
+    
+    if (speed > 5) { // En mouvement si > 5 km/h
+      setLastMovementTime(Date.now());
+      
+      // Annuler l'arrêt automatique si on bouge
+      if (autoStopTimeoutRef.current) {
+        clearTimeout(autoStopTimeoutRef.current);
+        autoStopTimeoutRef.current = null;
+      }
+    } else if (speed < 2) { // Arrêté si < 2 km/h
+      // Démarrer le timer d'arrêt automatique (5 minutes)
+      if (!autoStopTimeoutRef.current && autoRecording) {
+        autoStopTimeoutRef.current = setTimeout(() => {
+          if (isRecording) {
+            stopRecording();
+          }
+        }, 5 * 60 * 1000); // 5 minutes
+      }
+    }
+  };
+
+  const startGPSTracking = () => {
   const handleOrientation = (event: DeviceOrientationEvent) => {
     orientationRef.current = event;
   };
@@ -89,72 +143,7 @@ export default function TripRecorderSection() {
     // Démarrer le suivi GPS
     watchIdRef.current = navigator.geolocation.watchPosition(
       (position) => {
-        if (!currentRecording) return;
-
-        const newCoordinate = {
-          lat: position.coords.latitude,
-          lng: position.coords.longitude,
-          timestamp: new Date(),
-          speed: position.coords.speed ? position.coords.speed * 3.6 : undefined, // m/s vers km/h
-          heading: position.coords.heading || undefined,
-          altitude: position.coords.altitude || undefined
-        };
-
-        setCurrentRecording(prev => {
-          if (!prev) return null;
-
-          const updatedCoordinates = [...prev.coordinates, newCoordinate];
-          let distance = prev.distance;
-          let maxSpeed = prev.maxSpeed;
-          let maxLean = prev.maxLean;
-
-          // Calculer la distance si on a une position précédente
-          if (lastPositionRef.current) {
-            const newDistance = calculateDistance(
-              lastPositionRef.current.coords.latitude,
-              lastPositionRef.current.coords.longitude,
-              position.coords.latitude,
-              position.coords.longitude
-            );
-            distance += newDistance;
-          }
-
-          // Mettre à jour la vitesse max
-          if (newCoordinate.speed && newCoordinate.speed > maxSpeed) {
-            maxSpeed = newCoordinate.speed;
-          }
-
-          // Calculer l'angle d'inclinaison max
-          if (orientationRef.current) {
-            const currentLean = calculateLeanAngle(orientationRef.current);
-            if (currentLean > maxLean) {
-              maxLean = currentLean;
-            }
-          }
-
-          const duration = (Date.now() - prev.startTime.getTime()) / 1000 / 60; // en minutes
-          const averageSpeed = duration > 0 ? (distance / duration) * 60 : 0; // km/h
-
-          lastPositionRef.current = position;
-
-          return {
-            ...prev,
-            coordinates: updatedCoordinates,
-            distance,
-            duration,
-            averageSpeed,
-            maxSpeed,
-            maxLean
-          };
-        });
-      },
-      (error) => console.error('Erreur GPS:', error),
-      {
-        enableHighAccuracy: true,
-        timeout: 10000,
-        maximumAge: 1000
-      }
-    );
+    startGPSTracking();
 
     // Vibration de démarrage
     if (navigator.vibrate) {
@@ -168,6 +157,10 @@ export default function TripRecorderSection() {
       watchIdRef.current = null;
     }
 
+    if (autoStopTimeoutRef.current) {
+      clearTimeout(autoStopTimeoutRef.current);
+      autoStopTimeoutRef.current = null;
+    }
     if (currentRecording) {
       const finalRecording = {
         ...currentRecording,
@@ -194,6 +187,13 @@ export default function TripRecorderSection() {
     // Vibration d'arrêt
     if (navigator.vibrate) {
       navigator.vibrate([100, 50, 100, 50, 100]);
+    }
+
+    // Redémarrer automatiquement si activé
+    if (autoRecording) {
+      setTimeout(() => {
+        startAutoRecording();
+      }, 2000);
     }
   };
 
@@ -229,32 +229,63 @@ export default function TripRecorderSection() {
 
   return (
     <div className="space-y-4">
-      {/* Contrôles d'enregistrement - GROS BOUTONS */}
+      {/* Statut d'enregistrement automatique */}
       <div className="bg-slate-800 rounded-2xl p-6">
-        <h3 className="text-xl font-bold text-white mb-6 text-center">Enregistrement Trajet</h3>
+        <h3 className="text-xl font-bold text-white mb-4 text-center">Enregistrement Automatique</h3>
         
-        <div className="flex justify-center mb-6">
-          {!isRecording ? (
-            <button
-              onClick={startRecording}
-              className="flex items-center justify-center w-32 h-32 bg-green-600 hover:bg-green-700 active:bg-green-800 rounded-full transition-all duration-200 shadow-lg"
-            >
-              <div className="text-center">
-                <Play className="w-12 h-12 text-white mx-auto mb-2" />
-                <span className="text-white font-bold text-lg">START</span>
-              </div>
-            </button>
-          ) : (
-            <button
-              onClick={stopRecording}
-              className="flex items-center justify-center w-32 h-32 bg-red-600 hover:bg-red-700 active:bg-red-800 rounded-full transition-all duration-200 shadow-lg animate-pulse"
-            >
-              <div className="text-center">
-                <Square className="w-12 h-12 text-white mx-auto mb-2" />
-                <span className="text-white font-bold text-lg">STOP</span>
-              </div>
-            </button>
-          )}
+        <div className="text-center mb-6">
+          <div className={`inline-flex items-center space-x-3 px-6 py-4 rounded-2xl ${
+            isRecording 
+              ? 'bg-green-600/20 border-2 border-green-500' 
+              : 'bg-slate-700 border-2 border-slate-600'
+          }`}>
+            {isRecording ? (
+              <>
+                <div className="w-4 h-4 bg-green-500 rounded-full animate-pulse" />
+                <span className="text-green-400 font-bold text-lg">ENREGISTREMENT ACTIF</span>
+              </>
+            ) : (
+              <>
+                <div className="w-4 h-4 bg-slate-500 rounded-full" />
+                <span className="text-slate-400 font-bold text-lg">EN ATTENTE</span>
+              </>
+            )}
+          </div>
+          <p className="text-slate-400 text-sm mt-2">
+            {isRecording 
+              ? 'Arrêt automatique après 5min d\'immobilité'
+              : 'Démarrage automatique en mouvement'
+            }
+          </p>
+        </div>
+
+        {/* Contrôles manuels compacts */}
+        <div className="flex justify-center space-x-4">
+          <button
+            onClick={startRecording}
+            disabled={isRecording}
+            className={`flex items-center px-6 py-3 rounded-xl transition-all duration-200 ${
+              isRecording
+                ? 'bg-slate-600 text-slate-400'
+                : 'bg-green-600 text-white hover:bg-green-700 active:bg-green-800'
+            }`}
+          >
+            <Play className="w-5 h-5 mr-2" />
+            <span className="font-medium">Démarrer</span>
+          </button>
+          
+          <button
+            onClick={stopRecording}
+            disabled={!isRecording}
+            className={`flex items-center px-6 py-3 rounded-xl transition-all duration-200 ${
+              !isRecording
+                ? 'bg-slate-600 text-slate-400'
+                : 'bg-red-600 text-white hover:bg-red-700 active:bg-red-800'
+            }`}
+          >
+            <Square className="w-5 h-5 mr-2" />
+            <span className="font-medium">Arrêter</span>
+          </button>
         </div>
 
         {/* Données en temps réel pendant l'enregistrement */}
@@ -400,19 +431,35 @@ export default function TripRecorderSection() {
         )}
       </div>
 
-      {/* Instructions d'utilisation */}
-      <div className="bg-blue-600/20 border border-blue-500/50 rounded-xl p-4">
-        <div className="flex items-start space-x-3">
-          <BarChart3 className="w-6 h-6 text-blue-400 mt-0.5" />
-          <div>
-            <h5 className="font-bold text-blue-300 mb-2">Enregistrement Automatique</h5>
-            <ul className="text-sm text-blue-200 space-y-1">
-              <li>• GPS haute précision pour le tracé exact</li>
-              <li>• Capteurs d'orientation pour l'angle d'inclinaison</li>
-              <li>• Vitesse et statistiques en temps réel</li>
-              <li>• Export GPX pour partage avec le groupe</li>
-              <li>• Données sauvegardées localement</li>
-            </ul>
+      {/* Paramètres d'enregistrement */}
+      <div className="bg-slate-800 rounded-2xl p-6">
+        <h4 className="text-lg font-bold text-white mb-4">Paramètres</h4>
+        
+        <div className="space-y-4">
+          <div className="flex items-center justify-between p-4 bg-slate-700 rounded-xl">
+            <div>
+              <p className="font-medium text-white">Mode Automatique</p>
+              <p className="text-sm text-slate-400">Démarre/arrête selon le mouvement</p>
+            </div>
+            <button
+              onClick={() => setAutoRecording(!autoRecording)}
+              className={`w-12 h-6 rounded-full transition-colors ${
+                autoRecording ? 'bg-green-500' : 'bg-slate-600'
+              }`}
+            >
+              <div className={`w-5 h-5 bg-white rounded-full transition-transform ${
+                autoRecording ? 'translate-x-6' : 'translate-x-0.5'
+              }`} />
+            </button>
+          </div>
+          
+          <div className="p-4 bg-slate-700 rounded-xl">
+            <p className="font-medium text-white mb-2">Seuils de Détection</p>
+            <div className="text-sm text-slate-300 space-y-1">
+              <p>• Démarrage : mouvement > 5 km/h</p>
+              <p>• Arrêt : immobilité > 5 minutes</p>
+              <p>• Précision GPS : haute</p>
+            </div>
           </div>
         </div>
       </div>

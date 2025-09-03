@@ -3,6 +3,7 @@ import Layout from './components/Layout';
 import ItineraryModule from './components/ItineraryModule';
 import CoordinationModule from './components/CoordinationModule';
 import OrganizationModule from './components/OrganizationModule';
+import SettingsModule from './components/SettingsModule';
 
 function App() {
   const [activeTab, setActiveTab] = useState('itinerary');
@@ -15,6 +16,8 @@ function App() {
         return <CoordinationModule />;
       case 'organization':
         return <OrganizationModule />;
+      case 'settings':
+        return <SettingsModule />;
       default:
         return <ItineraryModule />;
     }

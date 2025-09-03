@@ -1,5 +1,5 @@
 import React from 'react';
-import { Map, Route, Users, Settings } from 'lucide-react';
+import { Map, Route, Users, Settings, HelpCircle } from 'lucide-react';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -12,6 +12,7 @@ export default function Layout({ children, activeTab, onTabChange }: LayoutProps
     { id: 'itinerary', label: 'Route', icon: Route },
     { id: 'coordination', label: 'Groupe', icon: Map },
     { id: 'organization', label: 'Infos', icon: Users },
+    { id: 'settings', label: 'Config', icon: Settings },
   ];
 
   return (
@@ -28,8 +29,13 @@ export default function Layout({ children, activeTab, onTabChange }: LayoutProps
                 <h1 className="text-lg font-bold text-white">RGA Trip</h1>
               </div>
             </div>
-            <button className="p-2 text-slate-400 hover:text-white transition-colors">
-              <Settings className="w-5 h-5" />
+            <button 
+              onClick={() => onTabChange('settings')}
+              className={`p-2 transition-colors ${
+                activeTab === 'settings' ? 'text-blue-400' : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              <HelpCircle className="w-5 h-5" />
             </button>
           </div>
         </div>
@@ -37,7 +43,7 @@ export default function Layout({ children, activeTab, onTabChange }: LayoutProps
 
       {/* Navigation en bas pour mobile */}
       <div className="fixed bottom-0 left-0 right-0 bg-slate-800 border-t border-slate-700 z-50">
-        <div className="grid grid-cols-3">
+        <div className="grid grid-cols-4">
           {tabs.map((tab) => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;
