@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Fuel, Coffee, AlertTriangle, Navigation, Users, ThumbsUp, Check, MapPin } from 'lucide-react';
+import { Fuel, Coffee, AlertTriangle, Navigation, Users, ThumbsUp, Check, MapPin, Phone } from 'lucide-react';
 import { RiderStatus } from '../types';
 
 export default function CoordinationModule() {
@@ -24,7 +24,7 @@ export default function CoordinationModule() {
       lng: 6.8650,
       status: 'fuel',
       lastUpdate: new Date(Date.now() - 300000),
-      statusMessage: 'Station Total A40 - Sortie 13',
+      statusMessage: 'Station Total A40',
       validatedBy: ['Marc'],
       needsValidation: true
     },
@@ -35,19 +35,22 @@ export default function CoordinationModule() {
       lng: 6.8600,
       status: 'pause',
       lastUpdate: new Date(Date.now() - 600000),
-      statusMessage: 'Pause café - Aire de repos',
+      statusMessage: 'Pause café',
       validatedBy: [],
       needsValidation: true
     }
   ];
 
   const [riderStatuses, setRiderStatuses] = useState<RiderStatus[]>(riders);
-  const currentUser = 'Marc'; // Utilisateur actuel
+  const currentUser = 'Marc';
 
-  const sendStatusUpdate = (status: 'fuel' | 'pause') => {
+  const sendStatusUpdate = (status: 'fuel' | 'pause' | 'emergency') => {
     setMyStatus(status);
-    // Simulation de l'envoi du statut
-    setTimeout(() => setMyStatus('riding'), 30000); // Reset après 30 secondes
+    // Vibration pour feedback tactile
+    if (navigator.vibrate) {
+      navigator.vibrate(200);
+    }
+    setTimeout(() => setMyStatus('riding'), 30000);
   };
 
   const validateStatus = (riderId: string) => {
@@ -57,69 +60,57 @@ export default function CoordinationModule() {
           ? { 
               ...rider, 
               validatedBy: [...rider.validatedBy, currentUser],
-              needsValidation: rider.validatedBy.length === 0 // Plus besoin de validation si c'est le premier
+              needsValidation: rider.validatedBy.length === 0
             }
           : rider
       )
     );
+    // Vibration pour confirmation
+    if (navigator.vibrate) {
+      navigator.vibrate(100);
+    }
   };
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'riding': return 'text-green-600';
-      case 'fuel': return 'text-orange-600';
-      case 'pause': return 'text-blue-600';
-      case 'emergency': return 'text-red-600';
-      default: return 'text-slate-600';
+      case 'riding': return 'text-green-400';
+      case 'fuel': return 'text-orange-400';
+      case 'pause': return 'text-blue-400';
+      case 'emergency': return 'text-red-400';
+      default: return 'text-slate-400';
     }
   };
 
   const getStatusLabel = (status: string) => {
     switch (status) {
       case 'riding': return 'En route';
-      case 'fuel': return 'Ravitaillement';
-      case 'pause': return 'En pause';
-      case 'emergency': return 'Urgence';
+      case 'fuel': return 'Essence';
+      case 'pause': return 'Pause';
+      case 'emergency': return 'URGENCE';
       default: return 'Inconnu';
     }
   };
 
   return (
-    <div className="space-y-8">
-      {/* En-tête */}
-      <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-2xl font-bold text-slate-900 mb-2">Coordination Groupe</h2>
-            <p className="text-slate-600">
-              Suivez la position de chaque membre et communiquez vos statuts
-            </p>
-          </div>
-          <div className="flex items-center space-x-2">
-            <Users className="w-6 h-6 text-blue-600" />
-            <span className="text-lg font-semibold text-slate-900">{riders.length}</span>
-          </div>
-        </div>
-      </div>
-
-      {/* Boutons de statut rapide */}
-      <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-        <h3 className="text-lg font-semibold text-slate-900 mb-4">Statuts Rapides</h3>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+    <div className="space-y-6">
+      {/* Statuts Rapides - Gros boutons tactiles */}
+      <div className="bg-slate-800 rounded-2xl p-6">
+        <h3 className="text-xl font-bold text-white mb-6 text-center">Actions Rapides</h3>
+        <div className="space-y-4">
           <button
             onClick={() => sendStatusUpdate('fuel')}
             disabled={myStatus === 'fuel'}
-            className={`p-4 rounded-xl border-2 transition-all duration-200 ${
+            className={`w-full p-6 rounded-2xl border-2 transition-all duration-200 ${
               myStatus === 'fuel'
-                ? 'border-orange-600 bg-orange-50 text-orange-700'
-                : 'border-orange-200 hover:border-orange-400 hover:bg-orange-50'
+                ? 'border-orange-500 bg-orange-500/20 text-orange-300'
+                : 'border-orange-500/50 bg-orange-500/10 text-orange-400 hover:bg-orange-500/20 active:bg-orange-500/30'
             }`}
           >
-            <div className="flex items-center justify-center space-x-3">
-              <Fuel className="w-8 h-8" />
+            <div className="flex items-center justify-center space-x-4">
+              <Fuel className="w-10 h-10" />
               <div className="text-left">
-                <p className="font-semibold">J'ai besoin d'essence</p>
-                <p className="text-sm text-slate-600">Signaler au groupe</p>
+                <p className="text-xl font-bold">ESSENCE</p>
+                <p className="text-sm opacity-80">Signaler au groupe</p>
               </div>
             </div>
           </button>
@@ -127,148 +118,151 @@ export default function CoordinationModule() {
           <button
             onClick={() => sendStatusUpdate('pause')}
             disabled={myStatus === 'pause'}
-            className={`p-4 rounded-xl border-2 transition-all duration-200 ${
+            className={`w-full p-6 rounded-2xl border-2 transition-all duration-200 ${
               myStatus === 'pause'
-                ? 'border-blue-600 bg-blue-50 text-blue-700'
-                : 'border-blue-200 hover:border-blue-400 hover:bg-blue-50'
+                ? 'border-blue-500 bg-blue-500/20 text-blue-300'
+                : 'border-blue-500/50 bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 active:bg-blue-500/30'
             }`}
           >
-            <div className="flex items-center justify-center space-x-3">
-              <Coffee className="w-8 h-8" />
+            <div className="flex items-center justify-center space-x-4">
+              <Coffee className="w-10 h-10" />
               <div className="text-left">
-                <p className="font-semibold">Je demande une pause</p>
-                <p className="text-sm text-slate-600">Signaler au groupe</p>
+                <p className="text-xl font-bold">PAUSE</p>
+                <p className="text-sm opacity-80">Demander un arrêt</p>
+              </div>
+            </div>
+          </button>
+
+          <button
+            onClick={() => sendStatusUpdate('emergency')}
+            className="w-full p-6 rounded-2xl border-2 border-red-500/50 bg-red-500/10 text-red-400 hover:bg-red-500/20 active:bg-red-500/30 transition-all duration-200"
+          >
+            <div className="flex items-center justify-center space-x-4">
+              <AlertTriangle className="w-10 h-10" />
+              <div className="text-left">
+                <p className="text-xl font-bold">URGENCE</p>
+                <p className="text-sm opacity-80">Alerte groupe</p>
               </div>
             </div>
           </button>
         </div>
       </div>
 
-      {/* Statut du groupe */}
-      <div className="bg-white rounded-xl shadow-sm border border-slate-200">
-        <div className="p-4 border-b border-slate-200">
-          <h3 className="text-lg font-semibold text-slate-900">Statut du Groupe</h3>
-        </div>
-        <div className="p-4">
-          <div className="space-y-4">
-            {riderStatuses.map((rider) => (
-              <div key={rider.id} className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
+      {/* Statut du groupe - Cards simplifiées */}
+      <div className="bg-slate-800 rounded-2xl p-6">
+        <h3 className="text-xl font-bold text-white mb-4 flex items-center">
+          <Users className="w-6 h-6 mr-2 text-blue-400" />
+          Statut Groupe
+        </h3>
+        <div className="space-y-3">
+          {riderStatuses.map((rider) => (
+            <div key={rider.id} className="bg-slate-700 rounded-xl p-4">
+              <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center space-x-3">
-                  <div className={`w-3 h-3 rounded-full ${
+                  <div className={`w-4 h-4 rounded-full ${
                     rider.status === 'riding' ? 'bg-green-500' :
                     rider.status === 'fuel' ? 'bg-orange-500' :
                     rider.status === 'pause' ? 'bg-blue-500' :
                     'bg-red-500'
                   }`} />
                   <div>
-                    <p className="font-medium text-slate-900">{rider.name}</p>
-                    <p className={`text-sm ${getStatusColor(rider.status)}`}>
+                    <p className="font-bold text-white text-lg">{rider.name}</p>
+                    <p className={`text-sm font-medium ${getStatusColor(rider.status)}`}>
                       {getStatusLabel(rider.status)}
                     </p>
-                    {rider.statusMessage && (
-                      <p className="text-xs text-slate-600 mt-1">{rider.statusMessage}</p>
-                    )}
-                    {rider.validatedBy.length > 0 && (
-                      <div className="flex items-center space-x-1 mt-1">
-                        <ThumbsUp className="w-3 h-3 text-green-600" />
-                        <span className="text-xs text-green-600">
-                          Vu par {rider.validatedBy.join(', ')}
-                        </span>
-                      </div>
-                    )}
                   </div>
-                </div>
-                <div className="flex items-center space-x-3">
-                  {rider.needsValidation && rider.name !== currentUser && !rider.validatedBy.includes(currentUser) && (
-                    <button
-                      onClick={() => validateStatus(rider.id)}
-                      className="flex items-center space-x-1 px-2 py-1 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors text-xs"
-                    >
-                      <Check className="w-3 h-3" />
-                      <span>Vu</span>
-                    </button>
-                  )}
-                  <div className="text-right">
-                    <p className="text-xs text-slate-500">
-                      Dernière mise à jour
-                    </p>
-                    <p className="text-xs text-slate-600">
-                      {Math.floor((Date.now() - rider.lastUpdate.getTime()) / 60000)}min
-                    </p>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* Position Temps Réel */}
-      <div className="bg-white rounded-xl shadow-sm border border-slate-200">
-        <div className="p-4 border-b border-slate-200">
-          <div className="flex items-center justify-between">
-            <h3 className="text-lg font-semibold text-slate-900 flex items-center">
-              <MapPin className="w-5 h-5 mr-2 text-blue-600" />
-              Position Temps Réel
-            </h3>
-            <div className="flex items-center space-x-2">
-              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-              <span className="text-sm text-green-600 font-medium">En ligne</span>
-            </div>
-          </div>
-          <p className="text-sm text-slate-600 mt-1">
-            Localisation GPS de tous les participants en temps réel
-          </p>
-        </div>
-        <div className="p-4">
-          {/* Carte des positions */}
-          <div className="h-64 bg-slate-100 rounded-lg flex items-center justify-center border-2 border-dashed border-slate-300">
-            <div className="text-center">
-              <Navigation className="w-12 h-12 text-slate-400 mx-auto mb-2" />
-              <p className="text-slate-500 font-medium">Carte GPS Temps Réel</p>
-              <p className="text-sm text-slate-400">Fonctionnalité en cours de développement</p>
-            </div>
-          </div>
-          
-          {/* Liste des positions */}
-          <div className="mt-4 space-y-2">
-            <h4 className="text-sm font-semibold text-slate-700 mb-2">Positions Actuelles</h4>
-            {riderStatuses.map((rider) => (
-              <div key={rider.id} className="flex items-center justify-between p-2 bg-slate-50 rounded-lg">
-                <div className="flex items-center space-x-2">
-                  <div className={`w-2 h-2 rounded-full ${
-                    rider.status === 'riding' ? 'bg-green-500' :
-                    rider.status === 'fuel' ? 'bg-orange-500' :
-                    rider.status === 'pause' ? 'bg-blue-500' :
-                    'bg-red-500'
-                  }`} />
-                  <span className="text-sm font-medium text-slate-900">{rider.name}</span>
                 </div>
                 <div className="text-right">
-                  <p className="text-xs text-slate-600">
-                    {rider.lat.toFixed(4)}, {rider.lng.toFixed(4)}
-                  </p>
-                  <p className="text-xs text-slate-500">
+                  <p className="text-xs text-slate-400">
                     {Math.floor((Date.now() - rider.lastUpdate.getTime()) / 60000)}min
                   </p>
                 </div>
               </div>
-            ))}
-          </div>
+              
+              {rider.statusMessage && (
+                <p className="text-sm text-slate-300 mb-3 bg-slate-600 p-2 rounded-lg">
+                  {rider.statusMessage}
+                </p>
+              )}
+              
+              <div className="flex items-center justify-between">
+                {rider.validatedBy.length > 0 && (
+                  <div className="flex items-center space-x-2">
+                    <ThumbsUp className="w-4 h-4 text-green-400" />
+                    <span className="text-sm text-green-400">
+                      Vu par {rider.validatedBy.join(', ')}
+                    </span>
+                  </div>
+                )}
+                
+                {rider.needsValidation && rider.name !== currentUser && !rider.validatedBy.includes(currentUser) && (
+                  <button
+                    onClick={() => validateStatus(rider.id)}
+                    className="flex items-center space-x-2 px-4 py-2 bg-green-600 text-white rounded-xl hover:bg-green-700 active:bg-green-800 transition-colors font-medium"
+                  >
+                    <ThumbsUp className="w-4 h-4" />
+                    <span>VU</span>
+                  </button>
+                )}
+              </div>
+            </div>
+          ))}
         </div>
       </div>
 
-      {/* Carte du groupe */}
-      <div className="bg-white rounded-xl shadow-sm border border-slate-200">
-        <div className="p-4 border-b border-slate-200">
-          <h3 className="text-lg font-semibold text-slate-900 flex items-center">
-            <Navigation className="w-5 h-5 mr-2 text-blue-600" />
-            Position Temps Réel
+      {/* Position Temps Réel - Section séparée */}
+      <div className="bg-slate-800 rounded-2xl p-6">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-xl font-bold text-white flex items-center">
+            <MapPin className="w-6 h-6 mr-2 text-blue-400" />
+            Position GPS
           </h3>
+          <div className="flex items-center space-x-2">
+            <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
+            <span className="text-sm text-green-400 font-medium">GPS Actif</span>
+          </div>
         </div>
-        <div className="h-64 bg-slate-100 rounded-b-xl flex items-center justify-center">
-          <p className="text-slate-500">Carte temps réel en cours de développement</p>
+        
+        {/* Carte GPS */}
+        <div className="h-48 bg-slate-700 rounded-xl flex items-center justify-center border-2 border-dashed border-slate-600 mb-4">
+          <div className="text-center">
+            <Navigation className="w-12 h-12 text-slate-400 mx-auto mb-2" />
+            <p className="text-slate-300 font-medium">Carte GPS</p>
+            <p className="text-sm text-slate-500">Positions en temps réel</p>
+          </div>
         </div>
+        
+        {/* Positions compactes */}
+        <div className="space-y-2">
+          {riderStatuses.map((rider) => (
+            <div key={rider.id} className="flex items-center justify-between p-3 bg-slate-700 rounded-lg">
+              <div className="flex items-center space-x-3">
+                <div className={`w-3 h-3 rounded-full ${
+                  rider.status === 'riding' ? 'bg-green-500' :
+                  rider.status === 'fuel' ? 'bg-orange-500' :
+                  rider.status === 'pause' ? 'bg-blue-500' :
+                  'bg-red-500'
+                }`} />
+                <span className="text-white font-medium">{rider.name}</span>
+              </div>
+              <div className="text-right">
+                <p className="text-xs text-slate-400">
+                  {Math.floor((Date.now() - rider.lastUpdate.getTime()) / 60000)}min
+                </p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Bouton d'urgence fixe */}
+      <div className="fixed top-4 right-4 z-40">
+        <button
+          onClick={() => sendStatusUpdate('emergency')}
+          className="w-16 h-16 bg-red-600 hover:bg-red-700 active:bg-red-800 rounded-full flex items-center justify-center shadow-lg transition-all duration-200"
+        >
+          <AlertTriangle className="w-8 h-8 text-white" />
+        </button>
       </div>
     </div>
   );

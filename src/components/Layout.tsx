@@ -9,62 +9,59 @@ interface LayoutProps {
 
 export default function Layout({ children, activeTab, onTabChange }: LayoutProps) {
   const tabs = [
-    { id: 'itinerary', label: 'Mon Itinéraire', icon: Route },
-    { id: 'coordination', label: 'Coordination', icon: Map },
-    { id: 'organization', label: 'Organisation', icon: Users },
+    { id: 'itinerary', label: 'Route', icon: Route },
+    { id: 'coordination', label: 'Groupe', icon: Map },
+    { id: 'organization', label: 'Infos', icon: Users },
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
-      {/* Header */}
-      <header className="bg-white border-b border-slate-200 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-orange-500 rounded-lg flex items-center justify-center">
-                <Route className="w-6 h-6 text-white" />
+    <div className="min-h-screen bg-slate-900 text-white">
+      {/* Header compact pour mobile */}
+      <header className="bg-slate-800 border-b border-slate-700">
+        <div className="px-4 py-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-orange-500 rounded-lg flex items-center justify-center">
+                <Route className="w-5 h-5 text-white" />
               </div>
               <div>
-                <h1 className="text-xl font-bold text-slate-900">RGA Moto Trip</h1>
-                <p className="text-sm text-slate-600">Route des Grandes Alpes</p>
+                <h1 className="text-lg font-bold text-white">RGA Trip</h1>
               </div>
             </div>
-            <button className="p-2 text-slate-600 hover:text-slate-900 transition-colors">
+            <button className="p-2 text-slate-400 hover:text-white transition-colors">
               <Settings className="w-5 h-5" />
             </button>
           </div>
         </div>
       </header>
 
-      {/* Navigation */}
-      <nav className="bg-white border-b border-slate-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex space-x-0">
-            {tabs.map((tab) => {
-              const Icon = tab.icon;
-              const isActive = activeTab === tab.id;
-              
-              return (
-                <button
-                  key={tab.id}
-                  onClick={() => onTabChange(tab.id)}
-                  className={`flex items-center space-x-2 px-6 py-4 text-sm font-medium border-b-2 transition-all duration-200 ${
-                    isActive
-                      ? 'border-blue-600 text-blue-600 bg-blue-50'
-                      : 'border-transparent text-slate-600 hover:text-slate-900 hover:border-slate-300'
-                  }`}
-                >
-                  <Icon className="w-4 h-4" />
-                  <span>{tab.label}</span>
-                </button>
-              );
-            })}
-          </div>
+      {/* Navigation en bas pour mobile */}
+      <div className="fixed bottom-0 left-0 right-0 bg-slate-800 border-t border-slate-700 z-50">
+        <div className="grid grid-cols-3">
+          {tabs.map((tab) => {
+            const Icon = tab.icon;
+            const isActive = activeTab === tab.id;
+            
+            return (
+              <button
+                key={tab.id}
+                onClick={() => onTabChange(tab.id)}
+                className={`flex flex-col items-center justify-center py-4 px-2 transition-all duration-200 ${
+                  isActive
+                    ? 'text-blue-400 bg-slate-700'
+                    : 'text-slate-400 hover:text-white active:bg-slate-700'
+                }`}
+              >
+                <Icon className="w-6 h-6 mb-1" />
+                <span className="text-xs font-medium">{tab.label}</span>
+              </button>
+            );
+          })}
         </div>
-      </nav>
+      </div>
 
-      {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      {/* Main Content avec padding pour navigation bottom */}
+      <main className="pb-20 px-4 py-4">
         {children}
       </main>
     </div>

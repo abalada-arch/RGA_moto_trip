@@ -1,28 +1,28 @@
 import React, { useState } from 'react';
-import { CheckSquare, FileText, Calculator, Users } from 'lucide-react';
+import { CheckSquare, FileText, Calculator, Users, Phone } from 'lucide-react';
 import ChecklistsSection from './ChecklistsSection';
 import ExpensesSection from './ExpensesSection';
 import DocumentsSection from './DocumentsSection';
 import ParticipantsSection from './ParticipantsSection';
 
-type OrganizationSection = 'checklists' | 'documents' | 'expenses' | 'participants';
+type OrganizationSection = 'participants' | 'checklists' | 'documents' | 'expenses';
 
 export default function OrganizationModule() {
-  const [activeSection, setActiveSection] = useState<OrganizationSection>('checklists');
+  const [activeSection, setActiveSection] = useState<OrganizationSection>('participants');
 
   const sections = [
-    { id: 'checklists', label: 'Checklists', icon: CheckSquare },
-    { id: 'participants', label: 'Participants', icon: Users },
-    { id: 'documents', label: 'Documents', icon: FileText },
-    { id: 'expenses', label: 'Dépenses', icon: Calculator },
+    { id: 'participants', label: 'Contacts', icon: Users },
+    { id: 'checklists', label: 'Listes', icon: CheckSquare },
+    { id: 'documents', label: 'Docs', icon: FileText },
+    { id: 'expenses', label: 'Frais', icon: Calculator },
   ] as const;
 
   const renderSection = () => {
     switch (activeSection) {
-      case 'checklists':
-        return <ChecklistsSection />;
       case 'participants':
         return <ParticipantsSection />;
+      case 'checklists':
+        return <ChecklistsSection />;
       case 'documents':
         return <DocumentsSection />;
       case 'expenses':
@@ -33,18 +33,10 @@ export default function OrganizationModule() {
   };
 
   return (
-    <div className="space-y-8">
-      {/* En-tête */}
-      <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-        <h2 className="text-2xl font-bold text-slate-900 mb-2">Organisation</h2>
-        <p className="text-slate-600">
-          Gérez les préparatifs, documents et dépenses du voyage
-        </p>
-      </div>
-
-      {/* Navigation des sections */}
-      <div className="bg-white rounded-xl shadow-sm border border-slate-200">
-        <div className="flex border-b border-slate-200">
+    <div className="space-y-6">
+      {/* Navigation des sections - Adaptée mobile */}
+      <div className="bg-slate-800 rounded-2xl overflow-hidden">
+        <div className="grid grid-cols-4">
           {sections.map((section) => {
             const Icon = section.icon;
             const isActive = activeSection === section.id;
@@ -53,22 +45,23 @@ export default function OrganizationModule() {
               <button
                 key={section.id}
                 onClick={() => setActiveSection(section.id)}
-                className={`flex-1 flex items-center justify-center space-x-2 px-6 py-4 text-sm font-medium transition-all duration-200 ${
+                className={`flex flex-col items-center justify-center py-4 px-2 transition-all duration-200 ${
                   isActive
-                    ? 'border-b-2 border-blue-600 text-blue-600 bg-blue-50'
-                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                    ? 'bg-blue-600 text-white'
+                    : 'text-slate-400 hover:text-white hover:bg-slate-700 active:bg-slate-600'
                 }`}
               >
-                <Icon className="w-4 h-4" />
-                <span>{section.label}</span>
+                <Icon className="w-6 h-6 mb-1" />
+                <span className="text-xs font-medium">{section.label}</span>
               </button>
             );
           })}
         </div>
+      </div>
         
-        <div className="p-6">
-          {renderSection()}
-        </div>
+      {/* Contenu de la section */}
+      <div className="bg-slate-800 rounded-2xl p-6">
+        {renderSection()}
       </div>
     </div>
   );
