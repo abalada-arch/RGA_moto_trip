@@ -135,3 +135,4 @@ export interface SharedGPX {
   downloadCount: number;
   stages: string[];
   description?: string;
+}
