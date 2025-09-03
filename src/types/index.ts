@@ -56,3 +56,50 @@ export interface RiderStatus {
   validatedBy: string[];
   needsValidation: boolean;
 }
+
+export interface WeatherData {
+  id: string;
+  location: string;
+  lat: number;
+  lng: number;
+  temperature: number;
+  condition: 'sunny' | 'cloudy' | 'rainy' | 'stormy' | 'snowy' | 'foggy';
+  windSpeed: number;
+  windDirection: string;
+  humidity: number;
+  visibility: number;
+  lastUpdate: Date;
+}
+
+export interface WeatherAlert {
+  id: string;
+  type: 'storm' | 'rain' | 'snow' | 'wind' | 'fog' | 'ice';
+  severity: 'low' | 'medium' | 'high' | 'extreme';
+  title: string;
+  description: string;
+  location: string;
+  startTime: Date;
+  endTime: Date;
+  affectedStages: string[];
+}
+
+export interface RoadInfo {
+  id: string;
+  name: string;
+  type: 'col' | 'tunnel' | 'bridge' | 'dangerous_curve';
+  elevation?: number;
+  status: 'open' | 'closed' | 'restricted';
+  conditions: string;
+  lastUpdate: Date;
+  warnings?: string[];
+}
+
+export interface SharedGPX {
+  id: string;
+  name: string;
+  uploadedBy: string;
+  uploadedAt: Date;
+  fileSize: string;
+  downloadCount: number;
+  stages: string[];
+  description?: string;

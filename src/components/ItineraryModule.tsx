@@ -1,10 +1,14 @@
 import React, { useState } from 'react';
-import { Upload, MapPin, Clock, Navigation, Route, Fuel, Coffee, Maximize2, Minimize2, AlertTriangle, ThumbsUp } from 'lucide-react';
+import { Upload, MapPin, Clock, Navigation, Route, Fuel, Coffee, Maximize2, Minimize2, AlertTriangle, ThumbsUp, Cloud, Mountain, Share2 } from 'lucide-react';
 import MapComponent from './MapComponent';
+import WeatherSection from './WeatherSection';
+import RoadInfoSection from './RoadInfoSection';
+import GPXSection from './GPXSection';
 import { TripStage, POI, GPXTrack } from '../types';
 
 export default function ItineraryModule() {
   const [selectedStage, setSelectedStage] = useState<string | null>(null);
+  const [activeSection, setActiveSection] = useState<'map' | 'weather' | 'roads' | 'gpx'>('map');
   const [pois, setPois] = useState<POI[]>([]);
   const [gpxTracks, setGpxTracks] = useState<GPXTrack[]>([]);
   const [isMapFullscreen, setIsMapFullscreen] = useState(false);
@@ -70,6 +74,118 @@ export default function ItineraryModule() {
     // Vibration pour feedback
     if (navigator.vibrate) {
       navigator.vibrate(100);
+    }
+  };
+
+  const sections = [
+    { id: 'map', label: 'Carte', icon: MapPin },
+    { id: 'weather', label: 'Météo', icon: Cloud },
+    { id: 'roads', label: 'Routes', icon: Mountain },
+    { id: 'gpx', label: 'GPX', icon: Share2 },
+  ] as const;
+
+  const renderSection = () => {
+    switch (activeSection) {
+      case 'map':
+        return (
+          <>
+            {/* Carte Interactive - EN HAUT et prioritaire */}
+            <div className="bg-slate-800 rounded-2xl overflow-hidden mb-6">
+              <div className="p-4 border-b border-slate-700">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-xl font-bold text-white flex items-center">
+                    <MapPin className="w-6 h-6 mr-2 text-blue-400" />
+                    Navigation
+                  </h3>
+                  <button
+                    onClick={toggleFullscreen}
+                    className="flex items-center space-x-2 px-4 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 active:bg-blue-800 transition-colors"
+                  >
+                    <Maximize2 className="w-5 h-5" />
+                    <span className="font-medium">Plein Écran</span>
+                  </button>
+                </div>
+                <p className="text-slate-400 text-sm mt-1">Appuyez sur la carte pour ajouter des points</p>
+              </div>
+              <div className="h-80">
+                <MapComponent 
+                  pois={pois}
+                  gpxTracks={gpxTracks}
+                  onAddPOI={addPOI}
+                  selectedStage={selectedStage}
+                />
+              </div>
+            </div>
+
+            {/* Étapes du parcours - Compactes */}
+            <div className="bg-slate-800 rounded-2xl p-6">
+              <h3 className="text-xl font-bold text-white mb-4 flex items-center">
+                <Route className="w-6 h-6 mr-2 text-blue-400" />
+                Parcours Détaillé
+              </h3>
+              
+              {/* Statistiques en ligne */}
+              <div className="grid grid-cols-3 gap-3 mb-4">
+                <div className="bg-slate-700 rounded-xl p-3 text-center">
+                  <Navigation className="w-6 h-6 text-blue-400 mx-auto mb-1" />
+                  <p className="text-xl font-bold text-white">300</p>
+                  <p className="text-xs text-slate-400">km total</p>
+                </div>
+                <div className="bg-slate-700 rounded-xl p-3 text-center">
+                  <Clock className="w-6 h-6 text-orange-400 mx-auto mb-1" />
+                  <p className="text-xl font-bold text-white">9h</p>
+                  <p className="text-xs text-slate-400">conduite</p>
+                </div>
+                <div className="bg-slate-700 rounded-xl p-3 text-center">
+                  <MapPin className="w-6 h-6 text-green-400 mx-auto mb-1" />
+                  <p className="text-xl font-bold text-white">{pois.length}</p>
+                  <p className="text-xs text-slate-400">POIs</p>
+                </div>
+              </div>
+
+              {/* Étapes simplifiées */}
+              <div className="space-y-3">
+                {stages.map((stage) => (
+                  <div
+                    key={stage.id}
+                    onClick={() => setSelectedStage(selectedStage === stage.id ? null : stage.id)}
+                    className={`p-4 rounded-xl border-2 transition-all duration-200 ${
+                      selectedStage === stage.id
+                        ? 'border-blue-500 bg-blue-500/20'
+                        : 'border-slate-600 bg-slate-700 active:bg-slate-600'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-3">
+                        <span className="text-sm font-bold bg-blue-600 text-white px-3 py-1 rounded-full">
+                          J{stage.day}
+                        </span>
+                        <div>
+                          <h4 className="font-bold text-white text-lg">{stage.title}</h4>
+                          <p className="text-slate-400 text-sm">{stage.description}</p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-white font-bold">{stage.distance} km</p>
+                        <p className="text-slate-400 text-sm">
+                          {Math.floor(stage.duration / 60)}h{stage.duration % 60}min
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </>
+        );
+      case 'weather':
+        return <WeatherSection stages={stages} />;
+      case 'roads':
+        return <RoadInfoSection />;
+      case 'gpx':
+        return <GPXSection />;
+      default:
+        return null;
     }
   };
 
@@ -170,110 +286,34 @@ export default function ItineraryModule() {
   // Mode normal
   return (
     <div className="space-y-6">
-      {/* Carte Interactive - EN HAUT et prioritaire */}
+      {/* Navigation des sections */}
       <div className="bg-slate-800 rounded-2xl overflow-hidden">
-        <div className="p-4 border-b border-slate-700">
-          <div className="flex items-center justify-between">
-            <h3 className="text-xl font-bold text-white flex items-center">
-              <MapPin className="w-6 h-6 mr-2 text-blue-400" />
-              Navigation
-            </h3>
-            <button
-              onClick={toggleFullscreen}
-              className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 active:bg-blue-800 transition-colors"
-            >
-              <Maximize2 className="w-5 h-5" />
-              <span className="font-medium">Plein Écran</span>
-            </button>
-          </div>
-          <p className="text-slate-400 text-sm mt-1">Appuyez sur la carte pour ajouter des points</p>
-        </div>
-        <div className="h-80">
-          <MapComponent 
-            pois={pois}
-            gpxTracks={gpxTracks}
-            onAddPOI={addPOI}
-            selectedStage={selectedStage}
-          />
+        <div className="grid grid-cols-4">
+          {sections.map((section) => {
+            const Icon = section.icon;
+            const isActive = activeSection === section.id;
+            
+            return (
+              <button
+                key={section.id}
+                onClick={() => setActiveSection(section.id)}
+                className={`flex flex-col items-center justify-center py-4 px-2 transition-all duration-200 ${
+                  isActive
+                    ? 'bg-blue-600 text-white'
+                    : 'text-slate-400 hover:text-white hover:bg-slate-700 active:bg-slate-600'
+                }`}
+              >
+                <Icon className="w-6 h-6 mb-1" />
+                <span className="text-xs font-medium">{section.label}</span>
+              </button>
+            );
+          })}
         </div>
       </div>
-
-      {/* Étapes du parcours - Compactes */}
-      <div className="bg-slate-800 rounded-2xl p-6">
-        <h3 className="text-xl font-bold text-white mb-4 flex items-center">
-          <Route className="w-6 h-6 mr-2 text-blue-400" />
-          Parcours Détaillé
-        </h3>
         
-        {/* Statistiques en ligne */}
-        <div className="grid grid-cols-3 gap-3 mb-4">
-          <div className="bg-slate-700 rounded-xl p-3 text-center">
-            <Navigation className="w-6 h-6 text-blue-400 mx-auto mb-1" />
-            <p className="text-xl font-bold text-white">300</p>
-            <p className="text-xs text-slate-400">km total</p>
-          </div>
-          <div className="bg-slate-700 rounded-xl p-3 text-center">
-            <Clock className="w-6 h-6 text-orange-400 mx-auto mb-1" />
-            <p className="text-xl font-bold text-white">9h</p>
-            <p className="text-xs text-slate-400">conduite</p>
-          </div>
-          <div className="bg-slate-700 rounded-xl p-3 text-center">
-            <MapPin className="w-6 h-6 text-green-400 mx-auto mb-1" />
-            <p className="text-xl font-bold text-white">{pois.length}</p>
-            <p className="text-xs text-slate-400">POIs</p>
-          </div>
-        </div>
-
-        {/* Étapes simplifiées */}
-        <div className="space-y-3">
-          {stages.map((stage) => (
-            <div
-              key={stage.id}
-              onClick={() => setSelectedStage(selectedStage === stage.id ? null : stage.id)}
-              className={`p-4 rounded-xl border-2 transition-all duration-200 ${
-                selectedStage === stage.id
-                  ? 'border-blue-500 bg-blue-500/20'
-                  : 'border-slate-600 bg-slate-700 active:bg-slate-600'
-              }`}
-            >
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-3">
-                  <span className="text-sm font-bold bg-blue-600 text-white px-3 py-1 rounded-full">
-                    J{stage.day}
-                  </span>
-                  <div>
-                    <h4 className="font-bold text-white text-lg">{stage.title}</h4>
-                    <p className="text-slate-400 text-sm">{stage.description}</p>
-                  </div>
-                </div>
-                <div className="text-right">
-                  <p className="text-white font-bold">{stage.distance} km</p>
-                  <p className="text-slate-400 text-sm">
-                    {Math.floor(stage.duration / 60)}h{stage.duration % 60}min
-                  </p>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Actions rapides pour la route */}
-      <div className="grid grid-cols-2 gap-3">
-        <button className="p-6 bg-green-600 hover:bg-green-700 active:bg-green-800 rounded-2xl transition-colors">
-          <div className="flex flex-col items-center space-y-2">
-            <Fuel className="w-10 h-10 text-white" />
-            <span className="text-white font-bold text-lg">Stations</span>
-            <span className="text-green-200 text-sm">Trouver essence</span>
-          </div>
-        </button>
-        <button className="p-6 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 rounded-2xl transition-colors">
-          <div className="flex flex-col items-center space-y-2">
-            <Coffee className="w-10 h-10 text-white" />
-            <span className="text-white font-bold text-lg">Pauses</span>
-            <span className="text-blue-200 text-sm">Points d'arrêt</span>
-          </div>
-        </button>
+      {/* Contenu de la section */}
+      <div>
+        {renderSection()}
       </div>
     </div>
   );
