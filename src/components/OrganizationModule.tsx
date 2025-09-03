@@ -34,6 +34,17 @@ export default function OrganizationModule() {
 
   return (
     <div className="space-y-6">
+      {/* Indicateur de mode */}
+      <div className="bg-blue-600/20 border border-blue-500/50 rounded-xl p-4">
+        <div className="flex items-center space-x-3">
+          <Coffee className="w-6 h-6 text-blue-400" />
+          <div>
+            <p className="font-bold text-blue-300">Mode Préparation</p>
+            <p className="text-sm text-blue-200">Organisation et gestion du voyage</p>
+          </div>
+        </div>
+      </div>
+
       {/* Navigation des sections - Adaptée mobile */}
       <div className="bg-slate-800 rounded-2xl overflow-hidden">
         <div className="grid grid-cols-4">

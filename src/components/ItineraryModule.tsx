@@ -86,10 +86,10 @@ export default function ItineraryModule() {
     { id: 'weather', label: 'Météo', icon: Cloud },
     { id: 'roads', label: 'Routes', icon: Mountain },
     { id: 'gpx', label: 'GPX', icon: Share2 },
+    { id: 'recorder', label: 'Enregistrement', icon: BarChart3 },
     { id: 'fuel', label: 'Essence', icon: Fuel },
     { id: 'memories', label: 'Souvenirs', icon: Camera },
     { id: 'traffic', label: 'Trafic', icon: Euro },
-    { id: 'recorder', label: 'Stats', icon: BarChart3 },
   ] as const;
 
   const renderSection = () => {
@@ -299,9 +299,20 @@ export default function ItineraryModule() {
     );
   }
 
-  // Mode normal
+  // Mode Préparation - Interface complète
   return (
     <div className="space-y-6">
+      {/* Indicateur de mode */}
+      <div className="bg-blue-600/20 border border-blue-500/50 rounded-xl p-4">
+        <div className="flex items-center space-x-3">
+          <Coffee className="w-6 h-6 text-blue-400" />
+          <div>
+            <p className="font-bold text-blue-300">Mode Préparation</p>
+            <p className="text-sm text-blue-200">Planification et organisation du voyage</p>
+          </div>
+        </div>
+      </div>
+
       {/* Navigation des sections */}
       <div className="bg-slate-800 rounded-2xl overflow-hidden">
         <div className="grid grid-cols-4 md:grid-cols-8 gap-0">

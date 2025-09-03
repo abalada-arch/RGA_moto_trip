@@ -4,11 +4,17 @@ import ItineraryModule from './components/ItineraryModule';
 import CoordinationModule from './components/CoordinationModule';
 import OrganizationModule from './components/OrganizationModule';
 import SettingsModule from './components/SettingsModule';
+import DrivingInterface from './components/DrivingInterface';
 
 function App() {
   const [activeTab, setActiveTab] = useState('itinerary');
+  const [isDrivingMode, setIsDrivingMode] = useState(false);
 
   const renderActiveModule = () => {
+    if (isDrivingMode) {
+      return <DrivingInterface activeTab={activeTab} onTabChange={setActiveTab} />;
+    }
+
     switch (activeTab) {
       case 'itinerary':
         return <ItineraryModule />;
@@ -24,7 +30,12 @@ function App() {
   };
 
   return (
-    <Layout activeTab={activeTab} onTabChange={setActiveTab}>
+    <Layout 
+      activeTab={activeTab} 
+      onTabChange={setActiveTab}
+      isDrivingMode={isDrivingMode}
+      onModeChange={setIsDrivingMode}
+    >
       {renderActiveModule()}
     </Layout>
   );
