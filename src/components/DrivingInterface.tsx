@@ -33,7 +33,40 @@ export default function DrivingInterface({ activeTab, onTabChange }: DrivingInte
   const [fuelLevel, setFuelLevel] = useState(75); // Pourcentage
 
   // Données du groupe
-  const [groupStatus, setGroupStatus] = useState<RiderStatus[]>([]);
+  const [groupStatus, setGroupStatus] = useState<RiderStatus[]>([
+    {
+      id: '1',
+      name: 'Marc',
+      lat: 45.9237,
+      lng: 6.8694,
+      status: 'riding',
+      lastUpdate: new Date(),
+      validatedBy: [],
+      needsValidation: false
+    },
+    {
+      id: '2',
+      name: 'Sophie',
+      lat: 45.9200,
+      lng: 6.8650,
+      status: 'fuel',
+      lastUpdate: new Date(Date.now() - 300000),
+      statusMessage: 'Station Total',
+      validatedBy: ['Marc'],
+      needsValidation: true
+    },
+    {
+      id: '3',
+      name: 'Pierre',
+      lat: 45.9180,
+      lng: 6.8600,
+      status: 'pause',
+      lastUpdate: new Date(Date.now() - 600000),
+      statusMessage: 'Pause café',
+      validatedBy: [],
+      needsValidation: true
+    }
+  ]);
 
   const [pois] = useState<POI[]>([]);
   const [gpxTracks] = useState<GPXTrack[]>([]);
@@ -240,34 +273,43 @@ export default function DrivingInterface({ activeTab, onTabChange }: DrivingInte
             {/* Statut groupe simplifié */}
             <div className="bg-slate-800/90 backdrop-blur-sm rounded-2xl p-6">
               <h4 className="text-lg font-bold text-white mb-4">Groupe</h4>
-              <div className="space-y-3">
-                {groupStatus.filter(rider => rider.needsValidation).map((rider) => (
-                  <div key={rider.id} className="bg-slate-700 rounded-xl p-4">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-3">
-                        <div className={`w-4 h-4 rounded-full ${
-                          rider.status === 'fuel' ? 'bg-orange-500' :
-                          rider.status === 'pause' ? 'bg-blue-500' :
-                          'bg-red-500'
-                        }`} />
-                        <div>
-                          <p className="font-bold text-white">{rider.name}</p>
-                          <p className="text-sm text-slate-300">{rider.statusMessage}</p>
+              
+              {groupStatus.filter(rider => rider.needsValidation).length === 0 ? (
+                <div className="text-center py-6">
+                  <Users className="w-12 h-12 text-slate-500 mx-auto mb-3" />
+                  <p className="text-slate-400">Aucune notification groupe</p>
+                  <p className="text-sm text-slate-500 mt-1">Les statuts s'afficheront ici</p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {groupStatus.filter(rider => rider.needsValidation).map((rider) => (
+                    <div key={rider.id} className="bg-slate-700 rounded-xl p-4">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-3">
+                          <div className={`w-4 h-4 rounded-full ${
+                            rider.status === 'fuel' ? 'bg-orange-500' :
+                            rider.status === 'pause' ? 'bg-blue-500' :
+                            'bg-red-500'
+                          }`} />
+                          <div>
+                            <p className="font-bold text-white">{rider.name}</p>
+                            <p className="text-sm text-slate-300">{rider.statusMessage}</p>
+                          </div>
                         </div>
+                        
+                        {!rider.validatedBy.includes('Vous') && (
+                          <button
+                            onClick={() => validateStatus(rider.id)}
+                            className="px-6 py-3 bg-green-600 text-white rounded-xl hover:bg-green-700 transition-colors font-bold"
+                          >
+                            VU
+                          </button>
+                        )}
                       </div>
-                      
-                      {!rider.validatedBy.includes('Vous') && (
-                        <button
-                          onClick={() => validateStatus(rider.id)}
-                          className="px-6 py-3 bg-green-600 text-white rounded-xl hover:bg-green-700 transition-colors font-bold"
-                        >
-                          VU
-                        </button>
-                      )}
                     </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         );
@@ -332,8 +374,8 @@ export default function DrivingInterface({ activeTab, onTabChange }: DrivingInte
               <div className="bg-slate-700 rounded-xl p-4">
                 <div className="text-center">
                   <MapPin className="w-8 h-8 text-blue-400 mx-auto mb-2" />
-                  <p className="text-white font-bold">45.9237, 6.8694</p>
-                  <p className="text-sm text-slate-400">Chamonix, France</p>
+                  <p className="text-white font-bold">Position GPS</p>
+                  <p className="text-sm text-slate-400">Géolocalisation en cours...</p>
                   <button className="mt-3 px-4 py-2 bg-blue-600 text-white rounded-xl">
                     Partager Position
                   </button>
