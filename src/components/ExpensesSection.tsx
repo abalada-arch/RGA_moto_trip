@@ -137,7 +137,5 @@ export default function ExpensesSection() {
           </div>
         )}
         </div>
-      </div>
-    </div>
   );
 }
