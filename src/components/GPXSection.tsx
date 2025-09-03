@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Upload, Download, Share2, FileText, Users, Clock, Trash2 } from 'lucide-react';
+import { Upload, Download, Share2, FileText, Users, Clock, Trash2, Info } from 'lucide-react';
 import { SharedGPX } from '../types';
 
 export default function GPXSection() {
