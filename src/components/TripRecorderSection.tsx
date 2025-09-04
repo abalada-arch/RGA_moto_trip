@@ -7,6 +7,8 @@ export default function TripRecorderSection() {
   const [currentRecording, setCurrentRecording] = useState<TripRecording | null>(null);
   const [autoRecording, setAutoRecording] = useState(true);
   const [lastMovementTime, setLastMovementTime] = useState<number>(Date.now());
+  const [currentPosition, setCurrentPosition] = useState<{lat: number, lng: number} | null>(null);
+  const [currentSpeed, setCurrentSpeed] = useState(0);
   const [tripStats, setTripStats] = useState<TripStats>({
     totalDistance: 0,
     totalDuration: 0,
@@ -26,9 +28,8 @@ export default function TripRecorderSection() {
   // Demander les permissions au montage
   useEffect(() => {
     requestPermissions();
-    if (autoRecording) {
-      startAutoRecording();
-    }
+    // Démarrer le suivi GPS immédiatement
+    startGPSTracking();
     return () => {
       if (watchIdRef.current) {
         navigator.geolocation.clearWatch(watchIdRef.current);
@@ -37,7 +38,7 @@ export default function TripRecorderSection() {
         clearTimeout(autoStopTimeoutRef.current);
       }
     };
-  }, []);
+  }, [autoRecording]);
 
   const requestPermissions = async () => {
     try {
@@ -58,8 +59,8 @@ export default function TripRecorderSection() {
     }
   };
 
-  const startAutoRecording = () => {
-    if (!autoRecording || isRecording) return;
+  const startRecording = () => {
+    if (isRecording) return;
     
     const recording: TripRecording = {
       id: Date.now().toString(),
@@ -71,19 +72,30 @@ export default function TripRecorderSection() {
       maxSpeed: 0,
       maxLean: 0,
       coordinates: [],
-      stageName: `Trajet Auto ${new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}`
+      stageName: `Trajet ${new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}`
     };
 
     setCurrentRecording(recording);
     setIsRecording(true);
-    startGPSTracking();
+    
+    // Vibration de démarrage
+    if (navigator.vibrate) {
+      navigator.vibrate([200, 100, 200]);
+    }
   };
 
   const checkForMovement = (position: GeolocationPosition) => {
     const speed = position.coords.speed ? position.coords.speed * 3.6 : 0; // km/h
+    setCurrentSpeed(speed);
+    setCurrentPosition({ lat: position.coords.latitude, lng: position.coords.longitude });
     
     if (speed > 5) { // En mouvement si > 5 km/h
       setLastMovementTime(Date.now());
+      
+      // Démarrer l'enregistrement automatiquement si activé et pas déjà en cours
+      if (autoRecording && !isRecording) {
+        startRecording();
+      }
       
       // Annuler l'arrêt automatique si on bouge
       if (autoStopTimeoutRef.current) {
@@ -97,7 +109,7 @@ export default function TripRecorderSection() {
           if (isRecording) {
             stopRecording();
           }
-        }, 5 * 60 * 1000); // 5 minutes
+        }, 3 * 60 * 1000); // 3 minutes d'arrêt
       }
     }
   };
@@ -124,11 +136,16 @@ export default function TripRecorderSection() {
 
   const startGPSTracking = () => {
     // Démarrer le suivi GPS
+    if (watchIdRef.current) {
+      navigator.geolocation.clearWatch(watchIdRef.current);
+    }
+    
     watchIdRef.current = navigator.geolocation.watchPosition(
       (position) => {
         checkForMovement(position);
         
-        if (currentRecording && lastPositionRef.current) {
+        // Enregistrer les coordonnées si on est en train d'enregistrer
+        if (isRecording && currentRecording && lastPositionRef.current) {
           const distance = calculateDistance(
             lastPositionRef.current.coords.latitude,
             lastPositionRef.current.coords.longitude,
@@ -159,7 +176,7 @@ export default function TripRecorderSection() {
                 altitude: position.coords.altitude,
                 timestamp: new Date(),
                 speed: speed,
-                leanAngle: leanAngle
+                heading: position.coords.heading
               }]
             };
           });
@@ -178,36 +195,7 @@ export default function TripRecorderSection() {
     );
   };
 
-  const startRecording = () => {
-    const recording: TripRecording = {
-      id: Date.now().toString(),
-      startTime: new Date(),
-      isRecording: true,
-      distance: 0,
-      duration: 0,
-      averageSpeed: 0,
-      maxSpeed: 0,
-      maxLean: 0,
-      coordinates: [],
-      stageName: `Trajet ${tripStats.recordings.length + 1}`
-    };
-
-    setCurrentRecording(recording);
-    setIsRecording(true);
-    startGPSTracking();
-
-    // Vibration de démarrage
-    if (navigator.vibrate) {
-      navigator.vibrate([200, 100, 200]);
-    }
-  };
-
   const stopRecording = () => {
-    if (watchIdRef.current) {
-      navigator.geolocation.clearWatch(watchIdRef.current);
-      watchIdRef.current = null;
-    }
-
     if (autoStopTimeoutRef.current) {
       clearTimeout(autoStopTimeoutRef.current);
       autoStopTimeoutRef.current = null;
@@ -239,13 +227,6 @@ export default function TripRecorderSection() {
     // Vibration d'arrêt
     if (navigator.vibrate) {
       navigator.vibrate([100, 50, 100, 50, 100]);
-    }
-
-    // Redémarrer automatiquement si activé
-    if (autoRecording) {
-      setTimeout(() => {
-        startAutoRecording();
-      }, 2000);
     }
   };
 
@@ -341,8 +322,13 @@ export default function TripRecorderSection() {
         </div>
 
         {/* Données en temps réel pendant l'enregistrement */}
-        {isRecording && currentRecording && (
+        {currentRecording && (
           <div className="grid grid-cols-2 gap-3">
+            <div className="bg-slate-700 rounded-xl p-4 text-center">
+              <Gauge className="w-6 h-6 text-purple-400 mx-auto mb-2" />
+              <p className="text-2xl font-bold text-white">{currentSpeed.toFixed(0)}</p>
+              <p className="text-sm text-slate-400">km/h actuel</p>
+            </div>
             <div className="bg-slate-700 rounded-xl p-4 text-center">
               <Navigation className="w-6 h-6 text-blue-400 mx-auto mb-2" />
               <p className="text-2xl font-bold text-white">{currentRecording.distance.toFixed(1)}</p>
@@ -363,8 +349,32 @@ export default function TripRecorderSection() {
               <p className="text-2xl font-bold text-white">{currentRecording.maxSpeed.toFixed(0)}</p>
               <p className="text-sm text-slate-400">km/h max</p>
             </div>
+            {currentPosition && (
+              <div className="bg-slate-700 rounded-xl p-4 text-center col-span-2">
+                <MapPin className="w-6 h-6 text-green-400 mx-auto mb-2" />
+                <p className="text-sm text-white">
+                  {currentPosition.lat.toFixed(6)}, {currentPosition.lng.toFixed(6)}
+                </p>
+                <p className="text-xs text-slate-400">Position GPS</p>
+              </div>
+            )}
           </div>
         )}
+        
+        {/* Statut GPS */}
+        <div className="mt-4 p-3 bg-slate-700 rounded-xl">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <div className={`w-3 h-3 rounded-full ${currentPosition ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`} />
+              <span className="text-white font-medium">
+                {currentPosition ? 'GPS Actif' : 'GPS Inactif'}
+              </span>
+            </div>
+            <span className="text-slate-400 text-sm">
+              {currentSpeed.toFixed(0)} km/h
+            </span>
+          </div>
+        </div>
       </div>
 
       {/* Statistiques globales du voyage */}

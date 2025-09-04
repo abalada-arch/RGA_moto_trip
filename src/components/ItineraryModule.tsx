@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Upload, MapPin, Clock, Navigation, Route, Fuel, Coffee, Maximize2, Minimize2, AlertTriangle, ThumbsUp, Cloud, Mountain, Share2, BarChart3, Euro, Camera, Radio } from 'lucide-react';
 import MapComponent from './MapComponent';
 import WeatherSection from './WeatherSection';
@@ -17,6 +17,29 @@ export default function ItineraryModule() {
   const [gpxTracks, setGpxTracks] = useState<GPXTrack[]>([]);
   const [isMapFullscreen, setIsMapFullscreen] = useState(false);
   const [myStatus, setMyStatus] = useState<'riding' | 'fuel' | 'pause' | 'emergency'>('riding');
+  const [userPosition, setUserPosition] = useState<{lat: number, lng: number} | null>(null);
+  
+  // Suivi de la position utilisateur
+  useEffect(() => {
+    const watchId = navigator.geolocation.watchPosition(
+      (position) => {
+        setUserPosition({
+          lat: position.coords.latitude,
+          lng: position.coords.longitude
+        });
+      },
+      (error) => {
+        console.error('Erreur GPS:', error);
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 5000
+      }
+    );
+
+    return () => navigator.geolocation.clearWatch(watchId);
+  }, []);
   
   // Données d'exemple pour l'itinéraire
   const stages: TripStage[] = [
@@ -121,6 +144,8 @@ export default function ItineraryModule() {
                   gpxTracks={gpxTracks}
                   onAddPOI={addPOI}
                   selectedStage={selectedStage}
+                  userPosition={userPosition}
+                  showUserPosition={true}
                 />
               </div>
             </div>
@@ -232,6 +257,8 @@ export default function ItineraryModule() {
             gpxTracks={gpxTracks}
             onAddPOI={addPOI}
             selectedStage={selectedStage}
+            userPosition={userPosition}
+            showUserPosition={true}
           />
         </div>
 

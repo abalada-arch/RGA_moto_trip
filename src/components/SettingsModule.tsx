@@ -446,19 +446,19 @@ export default function SettingsModule() {
         <div className="grid grid-cols-2 gap-4 text-sm">
           <div className="bg-slate-700 rounded-lg p-3">
             <p className="text-slate-400">Version</p>
-            <p className="text-white font-bold">1.0.0</p>
+            <p className="text-white font-bold">1.1.0</p>
           </div>
           <div className="bg-slate-700 rounded-lg p-3">
             <p className="text-slate-400">GPS</p>
-            <p className="text-green-400 font-bold">Actif</p>
+            <p className="text-green-400 font-bold">PWA + GPS</p>
           </div>
           <div className="bg-slate-700 rounded-lg p-3">
             <p className="text-slate-400">Stockage</p>
-            <p className="text-white font-bold">2.3 MB</p>
+            <p className="text-white font-bold">Cache Actif</p>
           </div>
           <div className="bg-slate-700 rounded-lg p-3">
             <p className="text-slate-400">Dernière sync</p>
-            <p className="text-white font-bold">Il y a 2min</p>
+            <p className="text-white font-bold">Hors ligne OK</p>
           </div>
         </div>
       </div>
