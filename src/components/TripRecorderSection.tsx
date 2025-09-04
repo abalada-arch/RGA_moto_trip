@@ -315,7 +315,7 @@ export default function TripRecorderSection() {
       (error) => {
         console.error('Erreur GPS:', error);
       },
-      { enableHighAccuracy: true, timeout: 30000, maximumAge: 2000 }
+      {
         enableHighAccuracy: true,
         timeout: 10000,
         maximumAge: 1000
