@@ -32,6 +32,7 @@ export default function DrivingInterface({ activeTab, onTabChange }: DrivingInte
   const [tripDuration, setTripDuration] = useState(0);
   const [fuelLevel, setFuelLevel] = useState(75); // Pourcentage
   const [userPosition, setUserPosition] = useState<{lat: number, lng: number} | null>(null);
+  const [isMoving, setIsMoving] = useState(false);
 
   // Données du groupe
   const [groupStatus, setGroupStatus] = useState<RiderStatus[]>([
