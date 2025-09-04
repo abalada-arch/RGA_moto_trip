@@ -18,6 +18,7 @@ L.Icon.Default.mergeOptions({
 interface MapComponentProps {
   pois: POI[];
   gpxTracks: GPXTrack[];
+  activeNavigationGPXTrack?: GPXTrack | null;
   onAddPOI: (lat: number, lng: number) => void;
   selectedStage: string | null;
   userPosition?: { lat: number; lng: number } | null;
@@ -36,6 +37,7 @@ function MapClickHandler({ onAddPOI }: { onAddPOI: (lat: number, lng: number) =>
 export default function MapComponent({ 
   pois, 
   gpxTracks, 
+  activeNavigationGPXTrack,
   onAddPOI, 
   selectedStage, 
   userPosition, 
@@ -47,6 +49,27 @@ export default function MapComponent({
   const center: [number, number] = userPosition && showUserPosition 
     ? [userPosition.lat, userPosition.lng] 
     : [45.8326, 6.8652];
+
+  // Effet pour centrer la carte sur le tracé GPX actif
+  useEffect(() => {
+    if (activeNavigationGPXTrack && mapRef.current) {
+      const map = mapRef.current;
+      const points = activeNavigationGPXTrack.points;
+      
+      if (points.length > 0) {
+        // Calculer les limites du tracé
+        const lats = points.map(p => p.lat);
+        const lngs = points.map(p => p.lng);
+        const bounds = L.latLngBounds(
+          [Math.min(...lats), Math.min(...lngs)],
+          [Math.max(...lats), Math.max(...lngs)]
+        );
+        
+        // Ajuster la carte pour afficher tout le tracé
+        map.fitBounds(bounds, { padding: [20, 20] });
+      }
+    }
+  }, [activeNavigationGPXTrack]);
 
   const getPOIIcon = (type: POI['type']) => {
     const icons = {
@@ -128,9 +151,9 @@ export default function MapComponent({
           <Polyline
             key={track.id}
             positions={track.points.map(point => [point.lat, point.lng])}
-            color="#3B82F6"
-            weight={4}
-            opacity={0.8}
+            color={activeNavigationGPXTrack?.id === track.id ? "#10B981" : "#3B82F6"}
+            weight={activeNavigationGPXTrack?.id === track.id ? 6 : 4}
+            opacity={activeNavigationGPXTrack?.id === track.id ? 1 : 0.6}
           />
         ))}
         
@@ -160,7 +183,13 @@ export default function MapComponent({
       {/* Légende des POIs */}
       <div className="absolute top-4 right-4 bg-white rounded-lg shadow-md p-3 z-[1000]">
         <h4 className="text-sm font-semibold text-slate-900 mb-2">Légende</h4>
-        <div className="space-y-1 text-xs">
+        <div className="space-y-2 text-xs">
+          {activeNavigationGPXTrack && (
+            <div className="flex items-center space-x-2 pb-2 border-b border-slate-200">
+              <div className="w-4 h-1 bg-green-500 rounded"></div>
+              <span className="font-medium">Tracé actif</span>
+            </div>
+          )}
           <div className="flex items-center space-x-2">
             <span>🏔️</span>
             <span>Cols</span>

@@ -193,7 +193,7 @@ export default function DrivingInterface({ activeTab, onTabChange }: DrivingInte
                 <MapComponent 
                   pois={pois}
                   gpxTracks={gpxTracks}
-                  onAddPOI={addPOI}
+                  onAddPOI={() => {}} // Pas d'ajout de POI en mode conduite
                   selectedStage={null}
                   userPosition={userPosition}
                   showUserPosition={true}
@@ -437,7 +437,7 @@ export default function DrivingInterface({ activeTab, onTabChange }: DrivingInte
                 <MapComponent 
                   pois={pois}
                   gpxTracks={gpxTracks}
-                  onAddPOI={addPOI}
+                  onAddPOI={() => {}} // Pas d'ajout de POI en mode conduite
                   selectedStage={null}
                   userPosition={userPosition}
                   showUserPosition={true}

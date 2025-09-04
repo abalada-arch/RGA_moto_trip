@@ -18,6 +18,7 @@ export default function ItineraryModule() {
   const [isMapFullscreen, setIsMapFullscreen] = useState(false);
   const [myStatus, setMyStatus] = useState<'riding' | 'fuel' | 'pause' | 'emergency'>('riding');
   const [userPosition, setUserPosition] = useState<{lat: number, lng: number} | null>(null);
+  const [activeNavigationGPXTrack, setActiveNavigationGPXTrack] = useState<GPXTrack | null>(null);
   
   // Suivi de la position utilisateur
   useEffect(() => {
@@ -96,6 +97,14 @@ export default function ItineraryModule() {
     setTimeout(() => setMyStatus('riding'), 30000);
   };
 
+  const handleSelectGPXForNavigation = (gpxTrack: GPXTrack | null) => {
+    setActiveNavigationGPXTrack(gpxTrack);
+    // Basculer vers la carte pour voir le tracé
+    if (gpxTrack) {
+      setActiveSection('map');
+    }
+  };
+
   const toggleFullscreen = () => {
     setIsMapFullscreen(!isMapFullscreen);
     // Vibration pour feedback
@@ -142,6 +151,8 @@ export default function ItineraryModule() {
                 <MapComponent 
                   pois={pois}
                   gpxTracks={gpxTracks}
+                  activeNavigationGPXTrack={activeNavigationGPXTrack}
+                  activeNavigationGPXTrack={activeNavigationGPXTrack}
                   onAddPOI={addPOI}
                   selectedStage={selectedStage}
                   userPosition={userPosition}
@@ -216,7 +227,14 @@ export default function ItineraryModule() {
       case 'roads':
         return <RoadInfoSection />;
       case 'gpx':
-        return <GPXSection onGPXTrackUpload={(track) => setGpxTracks([...gpxTracks, track])} />;
+        return (
+          <GPXSection 
+            onGPXTrackUpload={(track) => setGpxTracks([...gpxTracks, track])} 
+            onSelectGPXForNavigation={handleSelectGPXForNavigation}
+            gpxTracks={gpxTracks}
+            activeNavigationGPXTrack={activeNavigationGPXTrack}
+          />
+        );
       case 'recorder':
         return <TripRecorderSection />;
       case 'fuel':
@@ -255,6 +273,7 @@ export default function ItineraryModule() {
           <MapComponent 
             pois={pois}
             gpxTracks={gpxTracks}
+            activeNavigationGPXTrack={activeNavigationGPXTrack}
             onAddPOI={addPOI}
             selectedStage={selectedStage}
             userPosition={userPosition}
