@@ -3,17 +3,9 @@ import { Plus, Check, X } from 'lucide-react';
 import { ChecklistItem } from '../types';
 
 export default function ChecklistsSection() {
-  const [groupItems, setGroupItems] = useState<ChecklistItem[]>([
-    { id: '1', text: 'Réserver les hébergements', completed: true, category: 'group' },
-    { id: '2', text: 'Vérifier la météo', completed: false, category: 'group' },
-    { id: '3', text: 'Planifier les arrêts essence', completed: false, category: 'group' },
-  ]);
+  const [groupItems, setGroupItems] = useState<ChecklistItem[]>([]);
 
-  const [personalItems, setPersonalItems] = useState<ChecklistItem[]>([
-    { id: '4', text: 'Vérifier la moto', completed: true, category: 'personal' },
-    { id: '5', text: 'Préparer les vêtements', completed: false, category: 'personal' },
-    { id: '6', text: 'Charger les appareils', completed: false, category: 'personal' },
-  ]);
+  const [personalItems, setPersonalItems] = useState<ChecklistItem[]>([]);
 
   const [newItemText, setNewItemText] = useState('');
   const [showAddForm, setShowAddForm] = useState<'group' | 'personal' | null>(null);

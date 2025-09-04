@@ -3,26 +3,7 @@ import { Plus, Euro, Users } from 'lucide-react';
 import { Expense } from '../types';
 
 export default function ExpensesSection() {
-  const [expenses, setExpenses] = useState<Expense[]>([
-    {
-      id: '1',
-      description: 'Essence station A6',
-      amount: 65.50,
-      paidBy: 'Marc',
-      category: 'fuel',
-      date: new Date(),
-      participants: ['Marc', 'Sophie', 'Pierre']
-    },
-    {
-      id: '2',
-      description: 'Repas midi Chamonix',
-      amount: 87.20,
-      paidBy: 'Sophie',
-      category: 'food',
-      date: new Date(),
-      participants: ['Marc', 'Sophie', 'Pierre']
-    }
-  ]);
+  const [expenses, setExpenses] = useState<Expense[]>([]);
 
   const participants = ['Marc', 'Sophie', 'Pierre'];
 

@@ -5,27 +5,7 @@ import { VoiceMessage } from '../types';
 export default function CommunicationSection() {
   const [isRecording, setIsRecording] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
-  const [messages, setMessages] = useState<VoiceMessage[]>([
-    {
-      id: '1',
-      senderId: '2',
-      senderName: 'Sophie',
-      message: 'Station essence dans 5km',
-      timestamp: new Date(Date.now() - 5 * 60 * 1000),
-      isVoice: false,
-      acknowledged: ['Marc']
-    },
-    {
-      id: '2',
-      senderId: '3',
-      senderName: 'Pierre',
-      message: 'Pause café au prochain village ?',
-      timestamp: new Date(Date.now() - 10 * 60 * 1000),
-      isVoice: true,
-      duration: 3,
-      acknowledged: []
-    }
-  ]);
+  const [messages, setMessages] = useState<VoiceMessage[]>([]);
 
   const [quickMessage, setQuickMessage] = useState('');
   const [isConnected, setIsConnected] = useState(true);

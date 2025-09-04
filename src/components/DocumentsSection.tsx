@@ -10,22 +10,7 @@ interface Document {
 }
 
 export default function DocumentsSection() {
-  const [documents, setDocuments] = useState<Document[]>([
-    {
-      id: '1',
-      name: 'Permis de conduire',
-      type: 'license',
-      uploadedAt: new Date(),
-      size: '2.1 MB'
-    },
-    {
-      id: '2',
-      name: 'Assurance moto',
-      type: 'insurance',
-      uploadedAt: new Date(),
-      size: '1.8 MB'
-    }
-  ]);
+  const [documents, setDocuments] = useState<Document[]>([]);
 
   const documentTypes = {
     license: { label: 'Permis de conduire', color: 'blue' },

@@ -7,43 +7,10 @@ export default function CoordinationModule() {
   const [myStatus, setMyStatus] = useState<'riding' | 'fuel' | 'pause' | 'emergency'>('riding');
   const [activeSection, setActiveSection] = useState<'status' | 'communication'>('status');
   
-  // Données d'exemple des participants
-  const riders: RiderStatus[] = [
-    {
-      id: '1',
-      name: 'Marc',
-      lat: 45.9237,
-      lng: 6.8694,
-      status: 'riding',
-      lastUpdate: new Date(),
-      validatedBy: [],
-      needsValidation: false
-    },
-    {
-      id: '2',
-      name: 'Sophie',
-      lat: 45.9200,
-      lng: 6.8650,
-      status: 'fuel',
-      lastUpdate: new Date(Date.now() - 300000),
-      statusMessage: 'Station Total A40',
-      validatedBy: ['Marc'],
-      needsValidation: true
-    },
-    {
-      id: '3',
-      name: 'Pierre',
-      lat: 45.9180,
-      lng: 6.8600,
-      status: 'pause',
-      lastUpdate: new Date(Date.now() - 600000),
-      statusMessage: 'Pause café',
-      validatedBy: [],
-      needsValidation: true
-    }
-  ];
+  // Données des participants vides
+  const riders: RiderStatus[] = [];
 
-  const [riderStatuses, setRiderStatuses] = useState<RiderStatus[]>(riders);
+  const [riderStatuses, setRiderStatuses] = useState<RiderStatus[]>([]);
   const currentUser = 'Marc';
 
   const sendStatusUpdate = (status: 'fuel' | 'pause' | 'emergency') => {

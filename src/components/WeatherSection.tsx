@@ -7,72 +7,9 @@ interface WeatherSectionProps {
 }
 
 export default function WeatherSection({ stages }: WeatherSectionProps) {
-  const [weatherData, setWeatherData] = useState<WeatherData[]>([
-    {
-      id: '1',
-      location: 'Thonon-les-Bains',
-      lat: 46.3681,
-      lng: 6.5026,
-      temperature: 18,
-      condition: 'sunny',
-      windSpeed: 12,
-      windDirection: 'NO',
-      humidity: 65,
-      visibility: 15,
-      lastUpdate: new Date()
-    },
-    {
-      id: '2',
-      location: 'Chamonix',
-      lat: 45.9237,
-      lng: 6.8694,
-      temperature: 14,
-      condition: 'cloudy',
-      windSpeed: 18,
-      windDirection: 'O',
-      humidity: 72,
-      visibility: 12,
-      lastUpdate: new Date()
-    },
-    {
-      id: '3',
-      location: 'Val d\'Isère',
-      lat: 45.4486,
-      lng: 6.9786,
-      temperature: 8,
-      condition: 'rainy',
-      windSpeed: 25,
-      windDirection: 'SO',
-      humidity: 85,
-      visibility: 8,
-      lastUpdate: new Date()
-    }
-  ]);
+  const [weatherData, setWeatherData] = useState<WeatherData[]>([]);
 
-  const [alerts, setAlerts] = useState<WeatherAlert[]>([
-    {
-      id: '1',
-      type: 'rain',
-      severity: 'medium',
-      title: 'Pluie modérée prévue',
-      description: 'Averses attendues entre 14h et 18h',
-      location: 'Val d\'Isère - Col de l\'Iseran',
-      startTime: new Date(Date.now() + 2 * 60 * 60 * 1000),
-      endTime: new Date(Date.now() + 6 * 60 * 60 * 1000),
-      affectedStages: ['3']
-    },
-    {
-      id: '2',
-      type: 'wind',
-      severity: 'high',
-      title: 'Vents forts',
-      description: 'Rafales jusqu\'à 60 km/h en altitude',
-      location: 'Col du Galibier',
-      startTime: new Date(),
-      endTime: new Date(Date.now() + 4 * 60 * 60 * 1000),
-      affectedStages: ['2', '3']
-    }
-  ]);
+  const [alerts, setAlerts] = useState<WeatherAlert[]>([]);
 
   const getWeatherIcon = (condition: WeatherData['condition']) => {
     switch (condition) {

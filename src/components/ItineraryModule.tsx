@@ -42,39 +42,8 @@ export default function ItineraryModule() {
     return () => navigator.geolocation.clearWatch(watchId);
   }, []);
   
-  // Données d'exemple pour l'itinéraire
-  const stages: TripStage[] = [
-    {
-      id: '1',
-      day: 1,
-      title: 'Thonon → Chamonix',
-      distance: 95,
-      duration: 180,
-      startLocation: 'Thonon-les-Bains',
-      endLocation: 'Chamonix',
-      description: 'Vue Mont-Blanc'
-    },
-    {
-      id: '2',
-      day: 2,
-      title: 'Chamonix → Bourg-St-Maurice',
-      distance: 120,
-      duration: 210,
-      startLocation: 'Chamonix',
-      endLocation: 'Bourg-Saint-Maurice',
-      description: 'Col des Montets'
-    },
-    {
-      id: '3',
-      day: 3,
-      title: 'Bourg-St-Maurice → Val d\'Isère',
-      distance: 85,
-      duration: 150,
-      startLocation: 'Bourg-Saint-Maurice',
-      endLocation: 'Val d\'Isère',
-      description: 'Haute altitude'
-    }
-  ];
+  // Données d'itinéraire vides
+  const stages: TripStage[] = [];
 
   const addPOI = (lat: number, lng: number) => {
     const newPOI: POI = {
@@ -172,12 +141,12 @@ export default function ItineraryModule() {
               <div className="grid grid-cols-3 gap-3 mb-4">
                 <div className="bg-slate-700 rounded-xl p-3 text-center">
                   <Navigation className="w-6 h-6 text-blue-400 mx-auto mb-1" />
-                  <p className="text-xl font-bold text-white">300</p>
+                  <p className="text-xl font-bold text-white">0</p>
                   <p className="text-xs text-slate-400">km total</p>
                 </div>
                 <div className="bg-slate-700 rounded-xl p-3 text-center">
                   <Clock className="w-6 h-6 text-orange-400 mx-auto mb-1" />
-                  <p className="text-xl font-bold text-white">9h</p>
+                  <p className="text-xl font-bold text-white">0h</p>
                   <p className="text-xs text-slate-400">conduite</p>
                 </div>
                 <div className="bg-slate-700 rounded-xl p-3 text-center">
@@ -188,37 +157,45 @@ export default function ItineraryModule() {
               </div>
 
               {/* Étapes simplifiées */}
-              <div className="space-y-3">
-                {stages.map((stage) => (
-                  <div
-                    key={stage.id}
-                    onClick={() => setSelectedStage(selectedStage === stage.id ? null : stage.id)}
-                    className={`p-4 rounded-xl border-2 transition-all duration-200 ${
-                      selectedStage === stage.id
-                        ? 'border-blue-500 bg-blue-500/20'
-                        : 'border-slate-600 bg-slate-700 active:bg-slate-600'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-3">
-                        <span className="text-sm font-bold bg-blue-600 text-white px-3 py-1 rounded-full">
-                          J{stage.day}
-                        </span>
-                        <div>
-                          <h4 className="font-bold text-white text-lg">{stage.title}</h4>
-                          <p className="text-slate-400 text-sm">{stage.description}</p>
+              {stages.length === 0 ? (
+                <div className="text-center py-8">
+                  <Route className="w-12 h-12 text-slate-500 mx-auto mb-3" />
+                  <p className="text-slate-400">Aucune étape planifiée</p>
+                  <p className="text-sm text-slate-500 mt-1">Ajoutez vos étapes de voyage</p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {stages.map((stage) => (
+                    <div
+                      key={stage.id}
+                      onClick={() => setSelectedStage(selectedStage === stage.id ? null : stage.id)}
+                      className={`p-4 rounded-xl border-2 transition-all duration-200 ${
+                        selectedStage === stage.id
+                          ? 'border-blue-500 bg-blue-500/20'
+                          : 'border-slate-600 bg-slate-700 active:bg-slate-600'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-3">
+                          <span className="text-sm font-bold bg-blue-600 text-white px-3 py-1 rounded-full">
+                            J{stage.day}
+                          </span>
+                          <div>
+                            <h4 className="font-bold text-white text-lg">{stage.title}</h4>
+                            <p className="text-slate-400 text-sm">{stage.description}</p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-white font-bold">{stage.distance} km</p>
+                          <p className="text-slate-400 text-sm">
+                            {Math.floor(stage.duration / 60)}h{stage.duration % 60}min
+                          </p>
                         </div>
                       </div>
-                      <div className="text-right">
-                        <p className="text-white font-bold">{stage.distance} km</p>
-                        <p className="text-slate-400 text-sm">
-                          {Math.floor(stage.duration / 60)}h{stage.duration % 60}min
-                        </p>
-                      </div>
                     </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              )}
             </div>
           </>
         );

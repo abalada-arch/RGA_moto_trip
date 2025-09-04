@@ -11,39 +11,7 @@ interface Participant {
 }
 
 export default function ParticipantsSection() {
-  const [participants, setParticipants] = useState<Participant[]>([
-    {
-      id: '1',
-      name: 'Marc Dubois',
-      email: 'marc.dubois@email.com',
-      phone: '+33 6 12 34 56 78',
-      role: 'organizer',
-      joinedAt: new Date('2024-01-15')
-    },
-    {
-      id: '2',
-      name: 'Sophie Martin',
-      email: 'sophie.martin@email.com',
-      phone: '+33 6 98 76 54 32',
-      role: 'member',
-      joinedAt: new Date('2024-01-20')
-    },
-    {
-      id: '3',
-      name: 'Pierre Durand',
-      email: 'pierre.durand@email.com',
-      role: 'member',
-      joinedAt: new Date('2024-01-25')
-    },
-    {
-      id: '4',
-      name: 'Julie Moreau',
-      email: 'julie.moreau@email.com',
-      phone: '+33 6 11 22 33 44',
-      role: 'observer',
-      joinedAt: new Date('2024-01-28')
-    }
-  ]);
+  const [participants, setParticipants] = useState<Participant[]>([]);
 
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingParticipant, setEditingParticipant] = useState<Participant | null>(null);

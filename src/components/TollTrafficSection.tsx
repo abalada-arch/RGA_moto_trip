@@ -3,63 +3,9 @@ import { Euro, Navigation, AlertTriangle, Clock, Car, Bike, Calculator, Route } 
 import { TollCalculation, TrafficInfo } from '../types';
 
 export default function TollTrafficSection() {
-  const [tollCalculations, setTollCalculations] = useState<TollCalculation[]>([
-    {
-      id: '1',
-      route: 'A6 Paris → Lyon',
-      vehicleType: 'moto',
-      sections: [
-        { name: 'Fleury → Auxerre', distance: 45, cost: 3.20 },
-        { name: 'Auxerre → Chalon', distance: 120, cost: 8.50 },
-        { name: 'Chalon → Lyon', distance: 95, cost: 6.80 }
-      ],
-      totalCost: 18.50,
-      lastUpdate: new Date()
-    },
-    {
-      id: '2',
-      route: 'A40 Lyon → Chamonix',
-      vehicleType: 'moto',
-      sections: [
-        { name: 'Lyon → Mâcon', distance: 65, cost: 4.60 },
-        { name: 'Mâcon → Genève', distance: 85, cost: 6.20 },
-        { name: 'Genève → Chamonix', distance: 45, cost: 3.40 }
-      ],
-      totalCost: 14.20,
-      lastUpdate: new Date()
-    }
-  ]);
+  const [tollCalculations, setTollCalculations] = useState<TollCalculation[]>([]);
 
-  const [trafficAlerts, setTrafficAlerts] = useState<TrafficInfo[]>([
-    {
-      id: '1',
-      route: 'A6 Lyon',
-      severity: 'high',
-      type: 'traffic',
-      description: 'Bouchon 15km - Sortie de Lyon',
-      delay: 25,
-      alternativeRoute: 'A46 contournement',
-      lastUpdate: new Date(Date.now() - 10 * 60 * 1000)
-    },
-    {
-      id: '2',
-      route: 'N205 Bourg-St-Maurice',
-      severity: 'medium',
-      type: 'roadwork',
-      description: 'Travaux - Circulation alternée',
-      delay: 10,
-      lastUpdate: new Date(Date.now() - 30 * 60 * 1000)
-    },
-    {
-      id: '3',
-      route: 'D1006 Col du Galibier',
-      severity: 'low',
-      type: 'weather',
-      description: 'Brouillard matinal - Visibilité réduite',
-      delay: 5,
-      lastUpdate: new Date(Date.now() - 45 * 60 * 1000)
-    }
-  ]);
+  const [trafficAlerts, setTrafficAlerts] = useState<TrafficInfo[]>([]);
 
   const [vehicleType, setVehicleType] = useState<'moto' | 'car'>('moto');
   const [customRoute, setCustomRoute] = useState('');
