@@ -1,14 +1,19 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Play, Square, Download, BarChart3, Navigation, Gauge, TrendingUp, Clock, MapPin, Fuel, Coffee } from 'lucide-react';
 import { TripRecording, TripStats } from '../types';
+import { supabase } from '../lib/supabase';
+import { useAuth } from '../contexts/AuthContext';
 
 export default function TripRecorderSection() {
+  const { user } = useAuth();
   const [isRecording, setIsRecording] = useState(true); // Auto-démarré
   const [currentRecording, setCurrentRecording] = useState<TripRecording | null>(null);
   const [autoRecording, setAutoRecording] = useState(true);
   const [lastMovementTime, setLastMovementTime] = useState<number>(Date.now());
   const [currentPosition, setCurrentPosition] = useState<{lat: number, lng: number} | null>(null);
   const [currentSpeed, setCurrentSpeed] = useState(0);
+  const [loadingRecordings, setLoadingRecordings] = useState(true);
+  const [savingRecording, setSavingRecording] = useState(false);
   const [tripStats, setTripStats] = useState<TripStats>({
     totalDistance: 0,
     totalDuration: 0,
@@ -28,6 +33,7 @@ export default function TripRecorderSection() {
   // Demander les permissions au montage
   useEffect(() => {
     requestPermissions();
+    fetchRecordings();
     // Démarrer le suivi GPS immédiatement
     startGPSTracking();
     return () => {
@@ -39,6 +45,117 @@ export default function TripRecorderSection() {
       }
     };
   }, [autoRecording]);
+
+  const fetchRecordings = async () => {
+    if (!user) return;
+    
+    try {
+      setLoadingRecordings(true);
+      const { data, error } = await supabase
+        .from('trip_recordings')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      const recordings: TripRecording[] = data.map(record => ({
+        id: record.id,
+        startTime: new Date(record.start_time),
+        endTime: record.end_time ? new Date(record.end_time) : undefined,
+        isRecording: record.is_recording,
+        distance: record.distance,
+        duration: record.duration,
+        averageSpeed: record.average_speed,
+        maxSpeed: record.max_speed,
+        maxLean: record.max_lean,
+        coordinates: record.coordinates || [],
+        stageName: record.stage_name
+      }));
+
+      // Calculer les statistiques globales
+      const totalDistance = recordings.reduce((sum, rec) => sum + rec.distance, 0);
+      const totalDuration = recordings.reduce((sum, rec) => sum + rec.duration, 0);
+      const maxSpeed = recordings.reduce((max, rec) => Math.max(max, rec.maxSpeed), 0);
+      const maxLean = recordings.reduce((max, rec) => Math.max(max, rec.maxLean), 0);
+      const averageSpeed = totalDuration > 0 ? (totalDistance / totalDuration) * 60 : 0;
+
+      setTripStats({
+        totalDistance,
+        totalDuration,
+        averageSpeed,
+        maxSpeed,
+        maxLean,
+        fuelStops: 0,
+        pauseCount: 0,
+        recordings
+      });
+    } catch (error) {
+      console.error('Erreur lors du chargement des enregistrements:', error);
+    } finally {
+      setLoadingRecordings(false);
+    }
+  };
+
+  const saveRecordingToSupabase = async (recording: TripRecording) => {
+    if (!user) return null;
+    
+    try {
+      setSavingRecording(true);
+      const { data, error } = await supabase
+        .from('trip_recordings')
+        .insert({
+          user_id: user.id,
+          start_time: recording.startTime.toISOString(),
+          end_time: recording.endTime?.toISOString(),
+          distance: recording.distance,
+          duration: recording.duration,
+          average_speed: recording.averageSpeed,
+          max_speed: recording.maxSpeed,
+          max_lean: recording.maxLean,
+          coordinates: recording.coordinates,
+          stage_name: recording.stageName,
+          is_recording: recording.isRecording
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      console.error('Erreur lors de la sauvegarde:', error);
+      return null;
+    } finally {
+      setSavingRecording(false);
+    }
+  };
+
+  const updateRecordingInSupabase = async (recording: TripRecording) => {
+    if (!user) return;
+    
+    try {
+      setSavingRecording(true);
+      const { error } = await supabase
+        .from('trip_recordings')
+        .update({
+          end_time: recording.endTime?.toISOString(),
+          distance: recording.distance,
+          duration: recording.duration,
+          average_speed: recording.averageSpeed,
+          max_speed: recording.maxSpeed,
+          max_lean: recording.maxLean,
+          coordinates: recording.coordinates,
+          is_recording: recording.isRecording
+        })
+        .eq('id', recording.id);
+
+      if (error) throw error;
+    } catch (error) {
+      console.error('Erreur lors de la mise à jour:', error);
+    } finally {
+      setSavingRecording(false);
+    }
+  };
 
   const requestPermissions = async () => {
     try {
@@ -59,7 +176,7 @@ export default function TripRecorderSection() {
     }
   };
 
-  const startRecording = () => {
+  const startRecording = async () => {
     if (isRecording) return;
     
     const recording: TripRecording = {
@@ -74,6 +191,12 @@ export default function TripRecorderSection() {
       coordinates: [],
       stageName: `Trajet ${new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}`
     };
+
+    // Sauvegarder en base de données
+    const savedRecording = await saveRecordingToSupabase(recording);
+    if (savedRecording) {
+      recording.id = savedRecording.id;
+    }
 
     setCurrentRecording(recording);
     setIsRecording(true);
@@ -180,6 +303,11 @@ export default function TripRecorderSection() {
               }]
             };
           });
+          
+          // Sauvegarder périodiquement les coordonnées (toutes les 30 secondes)
+          if (currentRecording && currentRecording.coordinates.length % 30 === 0) {
+            updateRecordingInSupabase(currentRecording);
+          }
         }
         
         lastPositionRef.current = position;
@@ -195,7 +323,7 @@ export default function TripRecorderSection() {
     );
   };
 
-  const stopRecording = () => {
+  const stopRecording = async () => {
     if (autoStopTimeoutRef.current) {
       clearTimeout(autoStopTimeoutRef.current);
       autoStopTimeoutRef.current = null;
@@ -208,6 +336,9 @@ export default function TripRecorderSection() {
         isRecording: false
       };
 
+      // Mettre à jour en base de données
+      await updateRecordingInSupabase(finalRecording);
+
       setTripStats(prev => ({
         ...prev,
         totalDistance: prev.totalDistance + finalRecording.distance,
@@ -217,7 +348,7 @@ export default function TripRecorderSection() {
           : finalRecording.averageSpeed,
         maxSpeed: Math.max(prev.maxSpeed, finalRecording.maxSpeed),
         maxLean: Math.max(prev.maxLean, finalRecording.maxLean),
-        recordings: [...prev.recordings, finalRecording]
+        recordings: [finalRecording, ...prev.recordings]
       }));
     }
 
@@ -262,6 +393,16 @@ export default function TripRecorderSection() {
 
   return (
     <div className="space-y-4">
+      {/* Indicateur de chargement */}
+      {loadingRecordings && (
+        <div className="bg-slate-800 rounded-2xl p-6">
+          <div className="flex items-center justify-center space-x-3">
+            <div className="w-6 h-6 border-2 border-blue-400 border-t-transparent rounded-full animate-spin" />
+            <span className="text-white font-medium">Chargement des enregistrements...</span>
+          </div>
+        </div>
+      )}
+
       {/* Statut d'enregistrement automatique */}
       <div className="bg-slate-800 rounded-2xl p-6">
         <h3 className="text-xl font-bold text-white mb-4 text-center">Enregistrement Automatique</h3>
@@ -275,7 +416,10 @@ export default function TripRecorderSection() {
             {isRecording ? (
               <>
                 <div className="w-4 h-4 bg-green-500 rounded-full animate-pulse" />
-                <span className="text-green-400 font-bold text-lg">ENREGISTREMENT ACTIF</span>
+                <span className="text-green-400 font-bold text-lg">
+                  ENREGISTREMENT ACTIF
+                  {savingRecording && <span className="text-sm ml-2">(sauvegarde...)</span>}
+                </span>
               </>
             ) : (
               <>
@@ -296,28 +440,32 @@ export default function TripRecorderSection() {
         <div className="flex justify-center space-x-4">
           <button
             onClick={startRecording}
-            disabled={isRecording}
+            disabled={isRecording || savingRecording}
             className={`flex items-center px-6 py-3 rounded-xl transition-all duration-200 ${
-              isRecording
+              isRecording || savingRecording
                 ? 'bg-slate-600 text-slate-400'
                 : 'bg-green-600 text-white hover:bg-green-700 active:bg-green-800'
             }`}
           >
             <Play className="w-5 h-5 mr-2" />
-            <span className="font-medium">Démarrer</span>
+            <span className="font-medium">
+              {savingRecording ? 'Sauvegarde...' : 'Démarrer'}
+            </span>
           </button>
           
           <button
             onClick={stopRecording}
-            disabled={!isRecording}
+            disabled={!isRecording || savingRecording}
             className={`flex items-center px-6 py-3 rounded-xl transition-all duration-200 ${
-              !isRecording
+              !isRecording || savingRecording
                 ? 'bg-slate-600 text-slate-400'
                 : 'bg-red-600 text-white hover:bg-red-700 active:bg-red-800'
             }`}
           >
             <Square className="w-5 h-5 mr-2" />
-            <span className="font-medium">Arrêter</span>
+            <span className="font-medium">
+              {savingRecording ? 'Sauvegarde...' : 'Arrêter'}
+            </span>
           </button>
         </div>
 
@@ -429,7 +577,9 @@ export default function TripRecorderSection() {
         {tripStats.recordings.length === 0 ? (
           <div className="text-center py-8">
             <BarChart3 className="w-12 h-12 text-slate-500 mx-auto mb-3" />
-            <p className="text-slate-400">Aucun trajet enregistré</p>
+            <p className="text-slate-400">
+              {loadingRecordings ? 'Chargement...' : 'Aucun trajet enregistré'}
+            </p>
             <p className="text-sm text-slate-500 mt-1">Appuyez sur START pour commencer</p>
           </div>
         ) : (
@@ -443,6 +593,11 @@ export default function TripRecorderSection() {
                       {recording.startTime.toLocaleDateString('fr-FR')} • 
                       {recording.startTime.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
                       {recording.endTime && ` - ${recording.endTime.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}`}
+                      {recording.isRecording && (
+                        <span className="ml-2 px-2 py-1 bg-green-500/20 text-green-400 text-xs rounded-full">
+                          En cours
+                        </span>
+                      )}
                     </p>
                   </div>
                   <button
@@ -492,6 +647,19 @@ export default function TripRecorderSection() {
           </div>
         )}
       </div>
+
+      {/* Indicateur de sauvegarde */}
+      {savingRecording && (
+        <div className="bg-blue-600/20 border border-blue-500/50 rounded-xl p-4">
+          <div className="flex items-center space-x-3">
+            <div className="w-5 h-5 border-2 border-blue-400 border-t-transparent rounded-full animate-spin" />
+            <div>
+              <p className="font-bold text-blue-300">Sauvegarde en cours</p>
+              <p className="text-sm text-blue-200">Synchronisation avec le cloud...</p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Paramètres d'enregistrement */}
       <div className="bg-slate-800 rounded-2xl p-6">
