@@ -31,6 +31,7 @@ export default function DrivingInterface({ activeTab, onTabChange }: DrivingInte
   const [totalDistance, setTotalDistance] = useState(0);
   const [tripDuration, setTripDuration] = useState(0);
   const [fuelLevel, setFuelLevel] = useState(75); // Pourcentage
+  const [userPosition, setUserPosition] = useState<{lat: number, lng: number} | null>(null);
 
   // Données du groupe
   const [groupStatus, setGroupStatus] = useState<RiderStatus[]>([
@@ -73,20 +74,38 @@ export default function DrivingInterface({ activeTab, onTabChange }: DrivingInte
 
   // Simulation données temps réel
   useEffect(() => {
+    // Suivi GPS en temps réel
+    const watchId = navigator.geolocation.watchPosition(
+      (position) => {
+        const speed = position.coords.speed ? position.coords.speed * 3.6 : 0;
+        setCurrentSpeed(speed);
+        setUserPosition({
+          lat: position.coords.latitude,
+          lng: position.coords.longitude
+        });
+        setIsMoving(speed > 5);
+      },
+      (error) => {
+        console.error('Erreur GPS:', error);
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 1000
+      }
+    );
+
     const interval = setInterval(() => {
       setTripDuration(prev => prev + 1);
-      // Simulation GPS
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          const speed = position.coords.speed ? position.coords.speed * 3.6 : 0;
-          setCurrentSpeed(speed);
-        },
-        () => {},
-        { enableHighAccuracy: true }
-      );
+      if (isMoving) {
+        setTotalDistance(prev => prev + (currentSpeed / 3600)); // Approximation
+      }
     }, 1000);
 
-    return () => clearInterval(interval);
+    return () => {
+      clearInterval(interval);
+      navigator.geolocation.clearWatch(watchId);
+    };
   }, []);
 
   const sendStatusUpdate = (status: 'fuel' | 'pause' | 'emergency') => {
@@ -174,8 +193,10 @@ export default function DrivingInterface({ activeTab, onTabChange }: DrivingInte
                 <MapComponent 
                   pois={pois}
                   gpxTracks={gpxTracks}
-                  onAddPOI={() => {}}
+                  onAddPOI={addPOI}
                   selectedStage={null}
+                  userPosition={userPosition}
+                  showUserPosition={true}
                 />
               </div>
             </div>
@@ -416,8 +437,10 @@ export default function DrivingInterface({ activeTab, onTabChange }: DrivingInte
                 <MapComponent 
                   pois={pois}
                   gpxTracks={gpxTracks}
-                  onAddPOI={() => {}}
+                  onAddPOI={addPOI}
                   selectedStage={null}
+                  userPosition={userPosition}
+                  showUserPosition={true}
                 />
               </div>
             </div>
