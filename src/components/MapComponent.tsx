@@ -20,6 +20,8 @@ interface MapComponentProps {
   gpxTracks: GPXTrack[];
   onAddPOI: (lat: number, lng: number) => void;
   selectedStage: string | null;
+  userPosition?: { lat: number; lng: number } | null;
+  showUserPosition?: boolean;
 }
 
 function MapClickHandler({ onAddPOI }: { onAddPOI: (lat: number, lng: number) => void }) {
@@ -31,11 +33,20 @@ function MapClickHandler({ onAddPOI }: { onAddPOI: (lat: number, lng: number) =>
   return null;
 }
 
-export default function MapComponent({ pois, gpxTracks, onAddPOI, selectedStage }: MapComponentProps) {
+export default function MapComponent({ 
+  pois, 
+  gpxTracks, 
+  onAddPOI, 
+  selectedStage, 
+  userPosition, 
+  showUserPosition = false 
+}: MapComponentProps) {
   const mapRef = useRef<L.Map | null>(null);
 
   // Centre de la carte sur les Alpes françaises
-  const center: [number, number] = [45.8326, 6.8652];
+  const center: [number, number] = userPosition && showUserPosition 
+    ? [userPosition.lat, userPosition.lng] 
+    : [45.8326, 6.8652];
 
   const getPOIIcon = (type: POI['type']) => {
     const icons = {
@@ -56,11 +67,34 @@ export default function MapComponent({ pois, gpxTracks, onAddPOI, selectedStage 
     });
   };
 
+  const getUserPositionIcon = () => {
+    return L.divIcon({
+      html: `<div style="
+        background: #3B82F6; 
+        border: 3px solid white; 
+        border-radius: 50%; 
+        width: 20px; 
+        height: 20px; 
+        box-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
+        animation: pulse 2s infinite;
+      "></div>
+      <style>
+        @keyframes pulse {
+          0% { transform: scale(1); opacity: 1; }
+          50% { transform: scale(1.2); opacity: 0.7; }
+          100% { transform: scale(1); opacity: 1; }
+        }
+      </style>`,
+      className: 'user-position-icon',
+      iconSize: [20, 20],
+      iconAnchor: [10, 10]
+    });
+  };
   return (
     <div className="w-full h-full relative">
       <MapContainer
         center={center}
-        zoom={8}
+        zoom={userPosition && showUserPosition ? 15 : 8}
         style={{ height: '100%', width: '100%' }}
         ref={mapRef}
       >
@@ -70,6 +104,24 @@ export default function MapComponent({ pois, gpxTracks, onAddPOI, selectedStage 
         />
         
         <MapClickHandler onAddPOI={onAddPOI} />
+        
+        {/* Position utilisateur en temps réel */}
+        {showUserPosition && userPosition && (
+          <Marker
+            position={[userPosition.lat, userPosition.lng]}
+            icon={getUserPositionIcon()}
+          >
+            <Popup>
+              <div className="p-2">
+                <h4 className="font-semibold text-slate-900">Votre Position</h4>
+                <p className="text-sm text-slate-600">Position GPS actuelle</p>
+                <p className="text-xs text-slate-500 mt-1">
+                  {userPosition.lat.toFixed(6)}, {userPosition.lng.toFixed(6)}
+                </p>
+              </div>
+            </Popup>
+          </Marker>
+        )}
         
         {/* Affichage des traces GPX */}
         {gpxTracks.map((track) => (
