@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Upload, MapPin, Clock, Navigation, Route, Fuel, Coffee, Maximize2, Minimize2, AlertTriangle, ThumbsUp, Cloud, Mountain, Share2, BarChart3, Euro, Camera, Radio } from 'lucide-react';
 import MapComponent from './MapComponent';
 import WeatherSection from './WeatherSection';
