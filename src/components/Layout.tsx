@@ -33,7 +33,7 @@ export default function Layout({ children, activeTab, onTabChange, isDrivingMode
       (error) => {
         console.error('Erreur GPS Layout:', error);
       },
-      { enableHighAccuracy: true, timeout: 10000, maximumAge: 2000 }
+      { enableHighAccuracy: true, timeout: 30000, maximumAge: 2000 }
     );
 
     return () => navigator.geolocation.clearWatch(watchId);
