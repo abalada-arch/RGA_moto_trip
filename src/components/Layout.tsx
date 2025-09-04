@@ -26,14 +26,12 @@ export default function Layout({ children, activeTab, onTabChange, isDrivingMode
         setIsMoving(currentSpeed > 5);
         
         // Basculer automatiquement en mode conduite si mouvement détecté
-        if (currentSpeed > 15 && !isDrivingMode) {
+        if (currentSpeed > 10 && !isDrivingMode) {
           onModeChange(true);
         }
       },
-      (error) => {
-        console.error('Erreur GPS Layout:', error);
-      },
-      { enableHighAccuracy: true, timeout: 10000, maximumAge: 2000 }
+      () => {},
+      { enableHighAccuracy: true, timeout: 5000, maximumAge: 1000 }
     );
 
     return () => navigator.geolocation.clearWatch(watchId);
