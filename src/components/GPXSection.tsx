@@ -1,6 +1,14 @@
 import React, { useState } from 'react';
 import { Upload, Download, Share2, FileText, Users, Clock, Trash2, Info, Navigation, Play } from 'lucide-react';
 import { SharedGPX, GPXTrack } from '../types';
+import { 
+  fetchWeatherForecast, 
+  fetchDataGouvIncidents, 
+  fetchDataGouvWorks,
+  filterIncidentsAlongRoute,
+  filterWorksAlongRoute,
+  generateWeatherSamplePoints
+} from '../services/api';
 
 interface GPXSectionProps {
   onGPXTrackUpload: (track: GPXTrack) => void;
@@ -18,6 +26,7 @@ export default function GPXSection({
   const [sharedGPX, setSharedGPX] = useState<SharedGPX[]>([]);
 
   const [isUploading, setIsUploading] = useState(false);
+  const [isEnrichingData, setIsEnrichingData] = useState(false);
 
   const parseGPXFile = (gpxContent: string, fileName: string): GPXTrack | null => {
     try {
@@ -63,7 +72,13 @@ export default function GPXSection({
         name: fileName.replace('.gpx', ''),
         points,
         distance: totalDistance,
-        uploadedAt: new Date()
+        uploadedAt: new Date(),
+        // Initialiser les données enrichies
+        forecastWeather: [],
+        routeRoadInfo: [],
+        routeTrafficInfo: [],
+        routeIncidents: [],
+        routeWorks: []
       };
     } catch (error) {
       console.error('Erreur parsing GPX:', error);
@@ -71,6 +86,66 @@ export default function GPXSection({
     }
   };
   
+  const enrichGPXWithExternalData = async (gpxTrack: GPXTrack): Promise<GPXTrack> => {
+    setIsEnrichingData(true);
+    
+    try {
+      console.log('Enrichissement des données GPX en cours...');
+      
+      // 1. Générer des points d'échantillonnage pour la météo
+      const weatherSamplePoints = generateWeatherSamplePoints(gpxTrack.points, 50); // Tous les 50km
+      
+      // 2. Récupérer les prévisions météo pour chaque point
+      const weatherPromises = weatherSamplePoints.map(point => 
+        fetchWeatherForecast(point.lat, point.lng, point.estimatedTime)
+      );
+      
+      const weatherResults = await Promise.all(weatherPromises);
+      const forecastWeather = weatherResults.filter(weather => weather !== null);
+      
+      // 3. Récupérer les incidents et travaux de data.gouv.fr
+      const [incidents, works] = await Promise.all([
+        fetchDataGouvIncidents(),
+        fetchDataGouvWorks()
+      ]);
+      
+      // 4. Filtrer les incidents et travaux le long du tracé
+      const routeIncidents = filterIncidentsAlongRoute(incidents, gpxTrack.points, 2); // Rayon de 2km
+      const routeWorks = filterWorksAlongRoute(works, gpxTrack.points, 2);
+      
+      // 5. Convertir les travaux en informations de trafic
+      const routeTrafficInfo = routeWorks.map(work => ({
+        id: `traffic_${work.id}`,
+        route: `${work.lat.toFixed(4)}, ${work.lng.toFixed(4)}`,
+        severity: work.trafficImpact === 'closure' ? 'high' as const : 
+                 work.trafficImpact === 'slow' ? 'medium' as const : 'low' as const,
+        type: 'roadwork' as const,
+        description: work.description,
+        delay: work.trafficImpact === 'closure' ? 60 : 
+               work.trafficImpact === 'slow' ? 15 : 0,
+        alternativeRoute: work.alternativeRoute,
+        lastUpdate: new Date(),
+        lat: work.lat,
+        lng: work.lng
+      }));
+      
+      console.log(`Données enrichies: ${forecastWeather.length} prévisions météo, ${routeIncidents.length} incidents, ${routeWorks.length} travaux`);
+      
+      return {
+        ...gpxTrack,
+        forecastWeather,
+        routeIncidents,
+        routeWorks,
+        routeTrafficInfo
+      };
+      
+    } catch (error) {
+      console.error('Erreur lors de l\'enrichissement des données:', error);
+      return gpxTrack; // Retourner le GPX original en cas d'erreur
+    } finally {
+      setIsEnrichingData(false);
+    }
+  };
   const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number): number => {
     const R = 6371; // Rayon de la Terre en km
     const dLat = (lat2 - lat1) * Math.PI / 180;
@@ -94,26 +169,29 @@ export default function GPXSection({
         const gpxTrack = parseGPXFile(gpxContent, file.name);
         
         if (gpxTrack) {
+          // Enrichir le GPX avec des données externes
+          enrichGPXWithExternalData(gpxTrack).then(enrichedGPX => {
           // Ajouter à la liste des GPX partagés
-          const newGPX: SharedGPX = {
-            id: gpxTrack.id,
-            name: gpxTrack.name,
+            const newGPX: SharedGPX = {
+              id: enrichedGPX.id,
+              name: enrichedGPX.name,
             uploadedBy: 'Vous',
-            uploadedAt: gpxTrack.uploadedAt,
+              uploadedAt: enrichedGPX.uploadedAt,
             fileSize: `${(file.size / 1024 / 1024).toFixed(1)} MB`,
             downloadCount: 0,
             stages: ['1'],
-            description: `Parcours de ${gpxTrack.distance.toFixed(1)} km`
+              description: `Parcours de ${enrichedGPX.distance.toFixed(1)} km`
           };
           setSharedGPX([newGPX, ...sharedGPX]);
           
           // Ajouter à la carte
-          onGPXTrackUpload(gpxTrack);
+            onGPXTrackUpload(enrichedGPX);
           
           // Vibration de confirmation
           if (navigator.vibrate) {
             navigator.vibrate([100, 50, 100]);
           }
+          });
         } else {
           alert('Erreur lors du traitement du fichier GPX');
         }
@@ -189,14 +267,14 @@ export default function GPXSection({
         </p>
         
         <label className={`inline-flex items-center px-6 py-4 rounded-xl transition-all duration-200 cursor-pointer ${
-          isUploading 
+          isUploading || isEnrichingData
             ? 'bg-slate-600 text-slate-400' 
             : 'bg-blue-600 text-white hover:bg-blue-700 active:bg-blue-800'
         }`}>
-          {isUploading ? (
+          {isUploading || isEnrichingData ? (
             <>
               <div className="w-5 h-5 border-2 border-slate-400 border-t-transparent rounded-full animate-spin mr-2" />
-              Téléversement...
+              {isUploading ? 'Téléversement...' : 'Enrichissement des données...'}
             </>
           ) : (
             <>
@@ -208,7 +286,7 @@ export default function GPXSection({
             type="file"
             accept=".gpx"
             onChange={handleFileUpload}
-            disabled={isUploading}
+            disabled={isUploading || isEnrichingData}
             className="hidden"
           />
         </label>
@@ -395,6 +473,19 @@ export default function GPXSection({
         </div>
       )}
 
+      {/* Indicateur d'enrichissement des données */}
+      {isEnrichingData && (
+        <div className="bg-blue-600/20 border border-blue-500/50 rounded-xl p-4">
+          <div className="flex items-center space-x-3">
+            <div className="w-5 h-5 border-2 border-blue-400 border-t-transparent rounded-full animate-spin" />
+            <div>
+              <p className="font-bold text-blue-300">Enrichissement en cours</p>
+              <p className="text-sm text-blue-200">Récupération météo, trafic et conditions routières...</p>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Instructions d'utilisation */}
       <div className="bg-blue-600/20 border border-blue-500/50 rounded-xl p-4">
         <div className="flex items-start space-x-3">
@@ -404,6 +495,7 @@ export default function GPXSection({
             <ul className="text-sm text-blue-200 space-y-1">
               <li>• Téléchargez vos fichiers GPX (J1, J2, J3, etc.)</li>
               <li>• Cliquez sur "Activer" pour lancer la navigation sur un tracé</li>
+              <li>• Les données météo et trafic sont automatiquement récupérées</li>
               <li>• La carte se centrera automatiquement sur le tracé actif</li>
               <li>• Un seul tracé peut être actif à la fois</li>
             </ul>

@@ -1,8 +1,12 @@
 import React, { useState } from 'react';
 import { Euro, Navigation, AlertTriangle, Clock, Car, Bike, Calculator, Route } from 'lucide-react';
-import { TollCalculation, TrafficInfo } from '../types';
+import { TollCalculation, TrafficInfo, GPXTrack } from '../types';
 
-export default function TollTrafficSection() {
+interface TollTrafficSectionProps {
+  activeGPXTrack?: GPXTrack | null;
+}
+
+export default function TollTrafficSection({ activeGPXTrack }: TollTrafficSectionProps) {
   const [tollCalculations, setTollCalculations] = useState<TollCalculation[]>([]);
 
   const [trafficAlerts, setTrafficAlerts] = useState<TrafficInfo[]>([]);
@@ -10,6 +14,14 @@ export default function TollTrafficSection() {
   const [vehicleType, setVehicleType] = useState<'moto' | 'car'>('moto');
   const [customRoute, setCustomRoute] = useState('');
 
+  // Utiliser les données de trafic du GPX actif si disponibles
+  React.useEffect(() => {
+    if (activeGPXTrack?.routeTrafficInfo) {
+      setTrafficAlerts(activeGPXTrack.routeTrafficInfo);
+    } else {
+      setTrafficAlerts([]);
+    }
+  }, [activeGPXTrack]);
   const totalTollCost = tollCalculations.reduce((sum, toll) => sum + toll.totalCost, 0);
   const totalDistance = tollCalculations.reduce((sum, toll) => 
     sum + toll.sections.reduce((sectionSum, section) => sectionSum + section.distance, 0), 0
@@ -120,14 +132,16 @@ export default function TollTrafficSection() {
       <div className="bg-slate-800 rounded-2xl p-6">
         <h4 className="text-lg font-bold text-white mb-4 flex items-center">
           <Route className="w-5 h-5 mr-2 text-blue-400" />
-          Trafic en Temps Réel
+          {activeGPXTrack ? `Trafic - ${activeGPXTrack.name}` : 'Trafic en Temps Réel'}
         </h4>
 
         {trafficAlerts.length === 0 ? (
           <div className="text-center py-6">
             <Navigation className="w-12 h-12 text-green-400 mx-auto mb-3" />
             <p className="text-green-400 font-bold">Trafic Fluide</p>
-            <p className="text-sm text-slate-400">Aucun problème signalé sur votre parcours</p>
+            <p className="text-sm text-slate-400">
+              {activeGPXTrack ? 'Aucun problème signalé sur votre parcours' : 'Sélectionnez un tracé pour voir les conditions'}
+            </p>
           </div>
         ) : (
           <div className="space-y-3">

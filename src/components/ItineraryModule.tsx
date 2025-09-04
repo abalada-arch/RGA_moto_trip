@@ -200,9 +200,9 @@ export default function ItineraryModule() {
           </>
         );
       case 'weather':
-        return <WeatherSection stages={stages} />;
+        return <WeatherSection stages={stages} activeGPXTrack={activeNavigationGPXTrack} />;
       case 'roads':
-        return <RoadInfoSection />;
+        return <RoadInfoSection activeGPXTrack={activeNavigationGPXTrack} />;
       case 'gpx':
         return (
           <GPXSection 
@@ -219,7 +219,7 @@ export default function ItineraryModule() {
       case 'memories':
         return <MemoriesSection />;
       case 'traffic':
-        return <TollTrafficSection />;
+        return <TollTrafficSection activeGPXTrack={activeNavigationGPXTrack} />;
       default:
         return null;
     }

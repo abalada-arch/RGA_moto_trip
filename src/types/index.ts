@@ -57,6 +57,12 @@ export interface GPXTrack {
   points: Array<{ lat: number; lng: number; elevation?: number }>;
   distance: number;
   uploadedAt: Date;
+  // Données enrichies pour le mode préparation
+  forecastWeather?: WeatherData[];
+  routeRoadInfo?: RoadInfo[];
+  routeTrafficInfo?: TrafficInfo[];
+  routeIncidents?: RouteIncident[];
+  routeWorks?: RouteWork[];
 }
 
 export interface ChecklistItem {
@@ -207,6 +213,34 @@ export interface TrafficInfo {
   delay: number; // minutes
   alternativeRoute?: string;
   lastUpdate: Date;
+  lat?: number;
+  lng?: number;
+}
+
+export interface RouteIncident {
+  id: string;
+  type: 'accident' | 'breakdown' | 'obstacle' | 'other';
+  description: string;
+  lat: number;
+  lng: number;
+  severity: 'low' | 'medium' | 'high';
+  startTime: Date;
+  estimatedEndTime?: Date;
+  affectedLanes?: string;
+  source: string;
+}
+
+export interface RouteWork {
+  id: string;
+  description: string;
+  lat: number;
+  lng: number;
+  startDate: Date;
+  endDate?: Date;
+  workType: 'maintenance' | 'construction' | 'repair';
+  trafficImpact: 'none' | 'slow' | 'closure';
+  alternativeRoute?: string;
+  source: string;
 }
 
 export interface RestaurantPOI extends POI {

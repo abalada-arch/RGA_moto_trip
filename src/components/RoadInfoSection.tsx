@@ -1,10 +1,22 @@
 import React, { useState } from 'react';
 import { Mountain, AlertTriangle, CheckCircle, XCircle, Info, Navigation, Clock } from 'lucide-react';
-import { RoadInfo } from '../types';
+import { RoadInfo, GPXTrack } from '../types';
 
-export default function RoadInfoSection() {
+interface RoadInfoSectionProps {
+  activeGPXTrack?: GPXTrack | null;
+}
+
+export default function RoadInfoSection({ activeGPXTrack }: RoadInfoSectionProps) {
   const [roadInfos, setRoadInfos] = useState<RoadInfo[]>([]);
 
+  // Utiliser les données routières du GPX actif si disponibles
+  React.useEffect(() => {
+    if (activeGPXTrack?.routeRoadInfo) {
+      setRoadInfos(activeGPXTrack.routeRoadInfo);
+    } else {
+      setRoadInfos([]);
+    }
+  }, [activeGPXTrack]);
   const getStatusIcon = (status: RoadInfo['status']) => {
     switch (status) {
       case 'open': return <CheckCircle className="w-5 h-5 text-green-400" />;
@@ -71,14 +83,18 @@ export default function RoadInfoSection() {
       <div>
         <h4 className="text-lg font-bold text-white mb-4 flex items-center">
           <Mountain className="w-5 h-5 mr-2 text-blue-400" />
-          État des Routes & Cols
+          {activeGPXTrack ? `Routes & Cols - ${activeGPXTrack.name}` : 'État des Routes & Cols'}
         </h4>
         
         {roadInfos.length === 0 ? (
           <div className="text-center py-8">
             <Mountain className="w-12 h-12 text-slate-500 mx-auto mb-3" />
-            <p className="text-slate-400">Aucune information routière disponible</p>
-            <p className="text-sm text-slate-500 mt-1">Les conditions s'afficheront automatiquement</p>
+            <p className="text-slate-400">
+              {activeGPXTrack ? 'Aucun problème routier détecté' : 'Aucune information routière disponible'}
+            </p>
+            <p className="text-sm text-slate-500 mt-1">
+              {activeGPXTrack ? 'Votre tracé semble dégagé' : 'Sélectionnez un tracé GPX pour voir les conditions'}
+            </p>
           </div>
         ) : (
           <div className="space-y-3">

@@ -1,16 +1,49 @@
 import React, { useState, useEffect } from 'react';
 import { Cloud, Sun, CloudRain, Snowflake, Wind, Eye, AlertTriangle, Thermometer, Droplets } from 'lucide-react';
-import { WeatherData, WeatherAlert, TripStage } from '../types';
+import { WeatherData, WeatherAlert, TripStage, GPXTrack } from '../types';
 
 interface WeatherSectionProps {
   stages: TripStage[];
+  activeGPXTrack?: GPXTrack | null;
 }
 
-export default function WeatherSection({ stages }: WeatherSectionProps) {
+export default function WeatherSection({ stages, activeGPXTrack }: WeatherSectionProps) {
   const [weatherData, setWeatherData] = useState<WeatherData[]>([]);
 
   const [alerts, setAlerts] = useState<WeatherAlert[]>([]);
 
+  // Utiliser les données météo du GPX actif si disponibles
+  useEffect(() => {
+    if (activeGPXTrack?.forecastWeather) {
+      setWeatherData(activeGPXTrack.forecastWeather);
+      
+      // Générer des alertes basées sur les conditions météo
+      const weatherAlerts: WeatherAlert[] = activeGPXTrack.forecastWeather
+        .filter(weather => weather.condition === 'stormy' || weather.condition === 'snowy' || weather.windSpeed > 50)
+        .map(weather => ({
+          id: `alert_${weather.id}`,
+          type: weather.condition === 'stormy' ? 'storm' : 
+                weather.condition === 'snowy' ? 'snow' : 'wind',
+          severity: weather.condition === 'stormy' ? 'high' : 
+                   weather.condition === 'snowy' ? 'medium' : 
+                   weather.windSpeed > 70 ? 'high' : 'medium',
+          title: weather.condition === 'stormy' ? 'Risque d\'orage' :
+                 weather.condition === 'snowy' ? 'Chutes de neige' : 'Vents forts',
+          description: weather.condition === 'stormy' ? 'Conditions orageuses prévues' :
+                      weather.condition === 'snowy' ? 'Chutes de neige attendues' : 
+                      `Vents de ${weather.windSpeed} km/h`,
+          location: weather.location,
+          startTime: new Date(),
+          endTime: new Date(Date.now() + 6 * 60 * 60 * 1000), // 6h plus tard
+          affectedStages: ['1'] // Simplification
+        }));
+      
+      setAlerts(weatherAlerts);
+    } else {
+      setWeatherData([]);
+      setAlerts([]);
+    }
+  }, [activeGPXTrack]);
   const getWeatherIcon = (condition: WeatherData['condition']) => {
     switch (condition) {
       case 'sunny': return <Sun className="w-8 h-8 text-yellow-400" />;
@@ -91,25 +124,28 @@ export default function WeatherSection({ stages }: WeatherSectionProps) {
       <div>
         <h4 className="text-lg font-bold text-white mb-4 flex items-center">
           <Cloud className="w-5 h-5 mr-2 text-blue-400" />
-          Météo du Parcours
+          {activeGPXTrack ? `Météo - ${activeGPXTrack.name}` : 'Météo du Parcours'}
         </h4>
         
         {weatherData.length === 0 ? (
           <div className="text-center py-8">
             <Cloud className="w-12 h-12 text-slate-500 mx-auto mb-3" />
-            <p className="text-slate-400">Aucune donnée météo disponible</p>
-            <p className="text-sm text-slate-500 mt-1">Les prévisions s'afficheront automatiquement</p>
+            <p className="text-slate-400">
+              {activeGPXTrack ? 'Chargement des prévisions météo...' : 'Aucune donnée météo disponible'}
+            </p>
+            <p className="text-sm text-slate-500 mt-1">
+              {activeGPXTrack ? 'Analyse du tracé GPX en cours' : 'Sélectionnez un tracé GPX pour voir les prévisions'}
+            </p>
           </div>
         ) : (
           <div className="space-y-3">
             {weatherData.map((weather, index) => {
-              const stage = stages[index];
               return (
                 <div key={weather.id} className="bg-slate-700 rounded-xl p-4">
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center space-x-3">
-                      <span className="text-xs font-bold bg-blue-600 text-white px-2 py-1 rounded-full">
-                        J{stage?.day || index + 1}
+                      <span className="text-xs font-bold bg-green-600 text-white px-2 py-1 rounded-full">
+                        {index + 1}
                       </span>
                       <div>
                         <h5 className="font-bold text-white">{weather.location}</h5>
@@ -142,12 +178,13 @@ export default function WeatherSection({ stages }: WeatherSectionProps) {
                       <p className="text-slate-400 text-xs">km</p>
                     </div>
                   </div>
-                  {/* Alertes spécifiques à cette étape */}
-                  {alerts.filter(alert => alert.affectedStages.includes(stage?.id || '')).length > 0 && (
+                  
+                  {/* Alertes météo pour ce point */}
+                  {alerts.some(alert => alert.location === weather.location) && (
                     <div className="mt-3 p-2 bg-red-500/20 border border-red-500/50 rounded-lg">
                       <p className="text-red-300 text-sm font-medium flex items-center">
                         <AlertTriangle className="w-4 h-4 mr-2" />
-                        Alerte sur cette étape
+                        Conditions météo défavorables
                       </p>
                     </div>
                   )}
